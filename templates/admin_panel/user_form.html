@@ -1,0 +1,78 @@
+{% extends "admin_panel/base.html" %}
+
+{% block page_title %}{{ action }}用户{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="content-card">
+            <div class="card-header">
+                <h6><i class="bi bi-person-gear me-2"></i>{{ action }}用户</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <!-- 用户名 -->
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">用户名 <span class="text-danger">*</span></label>
+                            {% if action == '编辑' %}
+                            <input type="text" class="form-control" value="{{ edit_user.username }}" disabled style="font-size:14px;background:var(--gray-50);">
+                            <input type="hidden" name="username" value="{{ edit_user.username }}">
+                            {% else %}
+                            <input type="text" class="form-control" name="username" style="font-size:14px;" required placeholder="请输入用户名">
+                            {% endif %}
+                        </div>
+                        <!-- 密码 -->
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">
+                                {% if action == '编辑' %}新密码 <span style="font-size:12px;color:var(--gray-400);">(留空则不修改)</span>{% else %}密码 <span class="text-danger">*</span>{% endif %}
+                            </label>
+                            <input type="password" class="form-control" name="new_password" style="font-size:14px;" {% if action == '新增' %}required{% endif %} placeholder="{% if action == '编辑' %}留空则不修改密码{% else %}请输入密码{% endif %}">
+                        </div>
+                        <!-- 邮箱 -->
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">邮箱</label>
+                            <input type="email" class="form-control" name="email" style="font-size:14px;" value="{{ edit_user.email|default:'' }}" placeholder="请输入邮箱">
+                        </div>
+                        <!-- 手机号 -->
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">手机号</label>
+                            <input type="text" class="form-control" name="phone" style="font-size:14px;" value="{{ user_profile.phone|default:'' }}" placeholder="请输入手机号">
+                        </div>
+                        <!-- 所属机构 -->
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">所属机构</label>
+                            <input type="text" class="form-control" name="organization" style="font-size:14px;" value="{{ user_profile.organization|default:'' }}" placeholder="请输入所属机构">
+                        </div>
+                        <!-- 是否管理员 -->
+                        <div class="col-md-3">
+                            <label class="form-label d-block" style="font-size:14px;font-weight:500;color:var(--gray-600);">角色</label>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" name="is_staff" id="isStaff" {% if edit_user.is_staff %}checked{% endif %}>
+                                <label class="form-check-label" for="isStaff" style="font-size:14px;">管理员</label>
+                            </div>
+                        </div>
+                        <!-- 是否启用 (仅编辑时显示) -->
+                        {% if action == '编辑' %}
+                        <div class="col-md-3">
+                            <label class="form-label d-block" style="font-size:14px;font-weight:500;color:var(--gray-600);">状态</label>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" name="is_active" id="isActive" {% if edit_user.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="isActive" style="font-size:14px;">启用</label>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" style="padding:8px 32px;font-size:14px;">
+                            <i class="bi bi-check-lg me-1"></i>提交保存
+                        </button>
+                        <a href="{% url 'users:admin_user_list' %}" class="btn btn-secondary" style="padding:8px 32px;font-size:14px;">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

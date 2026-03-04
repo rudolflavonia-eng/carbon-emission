@@ -1,0 +1,144 @@
+{% extends "admin_panel/base.html" %}
+
+{% block page_title %}管理首页{% endblock %}
+
+{% block content %}
+<!-- 统计卡片 -->
+<div class="row g-3 mb-4">
+    <div class="col-md">
+        <div class="stat-card">
+            <div class="stat-icon blue">
+                <i class="bi bi-people" style="font-size:24px;"></i>
+            </div>
+            <div class="stat-value">{{ user_count }}</div>
+            <div class="stat-label">用户数</div>
+        </div>
+    </div>
+    <div class="col-md">
+        <div class="stat-card">
+            <div class="stat-icon cyan">
+                <i class="bi bi-database" style="font-size:24px;"></i>
+            </div>
+            <div class="stat-value">{{ record_count }}</div>
+            <div class="stat-label">数据记录</div>
+        </div>
+    </div>
+    <div class="col-md">
+        <div class="stat-card">
+            <div class="stat-icon yellow">
+                <i class="bi bi-bell" style="font-size:24px;"></i>
+            </div>
+            <div class="stat-value">{{ alert_count }}</div>
+            <div class="stat-label">待处理预警</div>
+        </div>
+    </div>
+    <div class="col-md">
+        <div class="stat-card">
+            <div class="stat-icon green">
+                <i class="bi bi-cloud-haze2" style="font-size:24px;"></i>
+            </div>
+            <div class="stat-value">{{ source_count }}</div>
+            <div class="stat-label">排放源</div>
+        </div>
+    </div>
+    <div class="col-md">
+        <div class="stat-card">
+            <div class="stat-icon red">
+                <i class="bi bi-geo-alt" style="font-size:24px;"></i>
+            </div>
+            <div class="stat-value">{{ region_count }}</div>
+            <div class="stat-label">地区数</div>
+        </div>
+    </div>
+</div>
+
+<!-- 最近操作日志 & 最新预警 -->
+<div class="row g-3">
+    <div class="col-md-7">
+        <div class="content-card">
+            <div class="card-header">
+                <h6><i class="bi bi-clock-history me-2"></i>最近操作日志</h6>
+                <a href="{% url 'users:admin_logs' %}" class="btn btn-outline-primary btn-sm">查看全部</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_logs %}
+                <div class="table-responsive">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>用户</th>
+                                <th>操作</th>
+                                <th>对象</th>
+                                <th>详情</th>
+                                <th>时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in recent_logs %}
+                            <tr>
+                                <td>{{ log.user.username|default:"--" }}</td>
+                                <td><span class="badge bg-primary bg-opacity-10 text-primary">{{ log.get_action_display }}</span></td>
+                                <td>{{ log.target|truncatechars:20 }}</td>
+                                <td style="color:var(--gray-500);font-size:13px;">{{ log.detail|truncatechars:30 }}</td>
+                                <td style="white-space:nowrap;color:var(--gray-500);font-size:13px;">{{ log.created_at|date:"m-d H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5" style="color:var(--gray-400);">
+                    <i class="bi bi-inbox" style="font-size:36px;display:block;margin-bottom:8px;"></i>
+                    <p class="mb-0">暂无操作日志</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="content-card">
+            <div class="card-header">
+                <h6><i class="bi bi-exclamation-triangle me-2"></i>最新预警</h6>
+                <a href="{% url 'alerts:admin_threshold_list' %}" class="btn btn-outline-primary btn-sm">管理阈值</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_alerts %}
+                <div class="table-responsive">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>级别</th>
+                                <th>信息</th>
+                                <th>时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for alert in recent_alerts %}
+                            <tr>
+                                <td>
+                                    {% if alert.alert_level == 'red' %}
+                                        <span class="badge badge-alert-red">严重</span>
+                                    {% elif alert.alert_level == 'orange' %}
+                                        <span class="badge badge-alert-orange">警告</span>
+                                    {% else %}
+                                        <span class="badge badge-alert-yellow">提示</span>
+                                    {% endif %}
+                                </td>
+                                <td style="font-size:13px;">{{ alert.alert_message|truncatechars:40 }}</td>
+                                <td style="white-space:nowrap;color:var(--gray-500);font-size:13px;">{{ alert.created_at|date:"m-d H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5" style="color:var(--gray-400);">
+                    <i class="bi bi-shield-check" style="font-size:36px;display:block;margin-bottom:8px;"></i>
+                    <p class="mb-0">暂无预警信息</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

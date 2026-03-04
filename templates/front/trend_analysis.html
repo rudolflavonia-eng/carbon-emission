@@ -1,0 +1,253 @@
+{% extends "front/base.html" %}
+
+{% block page_title %}排放趋势分析{% endblock %}
+
+{% block content %}
+<!-- 筛选栏 -->
+<div class="filter-bar">
+    <div class="d-flex align-items-center me-2">
+        <i class="bi bi-funnel me-2" style="color:var(--primary);"></i>
+        <span class="fw-bold" style="font-size:14px;white-space:nowrap;">数据筛选</span>
+    </div>
+    <select id="filterSource" class="form-select form-select-sm">
+        <option value="">全部排放源</option>
+        {% for s in sources %}
+        <option value="{{ s.id }}">{{ s.name }}</option>
+        {% endfor %}
+    </select>
+    <select id="filterRegion" class="form-select form-select-sm">
+        <option value="">全部地区</option>
+        {% for r in regions %}
+        <option value="{{ r.id }}">{{ r.name }}</option>
+        {% endfor %}
+    </select>
+    <select id="filterStartYear" class="form-select form-select-sm">
+        {% for y in years %}
+        <option value="{{ y }}" {% if y == 2015 %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+    </select>
+    <span style="color:var(--gray-400);font-size:14px;">至</span>
+    <select id="filterEndYear" class="form-select form-select-sm">
+        {% for y in years %}
+        <option value="{{ y }}" {% if y == 2025 %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+    </select>
+    <div class="d-flex align-items-center gap-2 ms-1">
+        <div class="form-check form-check-inline mb-0">
+            <input class="form-check-input" type="radio" name="granularity" id="granYear" value="year" checked>
+            <label class="form-check-label" for="granYear" style="font-size:14px;">年度</label>
+        </div>
+        <div class="form-check form-check-inline mb-0">
+            <input class="form-check-input" type="radio" name="granularity" id="granQuarter" value="quarter">
+            <label class="form-check-label" for="granQuarter" style="font-size:14px;">季度</label>
+        </div>
+    </div>
+    <button class="btn btn-primary btn-sm" id="btnQuery" style="white-space:nowrap;">
+        <i class="bi bi-search me-1"></i>查询
+    </button>
+</div>
+
+<!-- 排放趋势折线图 -->
+<div class="row g-3 mb-3">
+    <div class="col-12">
+        <div class="content-card">
+            <div class="card-header">
+                <h6><i class="bi bi-graph-up me-2"></i>排放趋势折线图</h6>
+            </div>
+            <div class="card-body">
+                <div id="trendLineChart" class="chart-container" style="min-height:420px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 同比变化率 & 各排放源趋势对比 -->
+<div class="row g-3 mb-3">
+    <div class="col-md-6">
+        <div class="content-card">
+            <div class="card-header">
+                <h6><i class="bi bi-bar-chart me-2"></i>同比变化率柱状图</h6>
+            </div>
+            <div class="card-body">
+                <div id="yoyChart" class="chart-container"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="content-card">
+            <div class="card-header">
+                <h6><i class="bi bi-layers me-2"></i>各排放源趋势对比</h6>
+            </div>
+            <div class="card-body">
+                <div id="sourceCompareChart" class="chart-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var BLUE = ['#2563EB','#3B82F6','#60A5FA','#93C5FD','#1E40AF','#1D4ED8','#BFDBFE','#06B6D4'];
+    var tooltipStyle = {backgroundColor:'#fff',borderColor:'#E2E8F0',borderWidth:1,textStyle:{color:'#334155',fontSize:13}};
+    var axisLineStyle = {lineStyle:{color:'#E2E8F0'}};
+    var axisLabelStyle = {color:'#64748B',fontSize:12};
+    var splitLineStyle = {lineStyle:{color:'#F1F5F9'}};
+
+    var trendLineChart = echarts.init(document.getElementById('trendLineChart'));
+    var yoyChart = echarts.init(document.getElementById('yoyChart'));
+    var sourceCompareChart = echarts.init(document.getElementById('sourceCompareChart'));
+
+    function getParams() {
+        return {
+            source: document.getElementById('filterSource').value,
+            region: document.getElementById('filterRegion').value,
+            start_year: document.getElementById('filterStartYear').value,
+            end_year: document.getElementById('filterEndYear').value,
+            granularity: document.querySelector('input[name="granularity"]:checked').value
+        };
+    }
+
+    function buildUrl(params) {
+        var qs = Object.keys(params).filter(function(k){return params[k];}).map(function(k){return k+'='+encodeURIComponent(params[k]);}).join('&');
+        return '/analysis/api/trend-data/' + (qs ? '?' + qs : '');
+    }
+
+    function calcYoY(values) {
+        var rates = [];
+        for (var i = 0; i < values.length; i++) {
+            if (i === 0 || values[i-1] === 0) { rates.push(null); }
+            else { rates.push(parseFloat(((values[i] - values[i-1]) / values[i-1] * 100).toFixed(2))); }
+        }
+        return rates;
+    }
+
+    function loadData() {
+        var params = getParams();
+        var url = buildUrl(params);
+
+        trendLineChart.showLoading({text:'加载中...',color:BLUE[0]});
+        yoyChart.showLoading({text:'加载中...',color:BLUE[0]});
+        sourceCompareChart.showLoading({text:'加载中...',color:BLUE[0]});
+
+        fetch(url)
+            .then(function(res){return res.json();})
+            .then(function(resp){
+                var d = resp.data || resp;
+                var labels = d.labels || [];
+                var values = d.values || [];
+                var sourceTrends = d.source_trends || {};
+
+                trendLineChart.hideLoading();
+                yoyChart.hideLoading();
+                sourceCompareChart.hideLoading();
+
+                // -- Chart 1: 排放趋势折线图 (multi-line per source) --
+                var seriesList = [];
+                var legendNames = [];
+                var srcKeys = Object.keys(sourceTrends);
+                if (srcKeys.length > 0) {
+                    srcKeys.forEach(function(name, idx){
+                        legendNames.push(name);
+                        seriesList.push({
+                            name: name,
+                            type: 'line',
+                            smooth: true,
+                            symbol: 'circle',
+                            symbolSize: 6,
+                            lineStyle: {width:2.5,color:BLUE[idx % BLUE.length]},
+                            itemStyle: {color:BLUE[idx % BLUE.length],borderColor:'#fff',borderWidth:2},
+                            areaStyle: {
+                                color: new echarts.graphic.LinearGradient(0,0,0,1,[
+                                    {offset:0,color:BLUE[idx % BLUE.length].replace(')',',0.18)').replace('rgb','rgba').replace('#','rgba(').length ? echarts.color.modifyAlpha(BLUE[idx % BLUE.length],0.18) : 'rgba(37,99,235,0.18)'},
+                                    {offset:1,color:'rgba(255,255,255,0.01)'}
+                                ])
+                            },
+                            data: sourceTrends[name]
+                        });
+                    });
+                } else {
+                    legendNames.push('排放量');
+                    seriesList.push({
+                        name:'排放量',type:'line',smooth:true,symbol:'circle',symbolSize:8,
+                        lineStyle:{width:3,color:BLUE[0]},
+                        itemStyle:{color:BLUE[0],borderColor:'#fff',borderWidth:2},
+                        areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(37,99,235,0.25)'},{offset:1,color:'rgba(37,99,235,0.02)'}])},
+                        data:values
+                    });
+                }
+
+                trendLineChart.setOption({
+                    tooltip: Object.assign({trigger:'axis',axisPointer:{type:'cross'}},tooltipStyle),
+                    legend: {data:legendNames,top:8,textStyle:{color:'#64748B',fontSize:12}},
+                    grid: {left:'3%',right:'4%',bottom:'3%',top:'48',containLabel:true},
+                    xAxis: {type:'category',data:labels,axisLine:axisLineStyle,axisLabel:axisLabelStyle,axisTick:{show:false},boundaryGap:false},
+                    yAxis: {type:'value',name:'万吨CO2',nameTextStyle:{color:'#94A3B8',fontSize:12},axisLine:{show:false},axisLabel:axisLabelStyle,splitLine:splitLineStyle},
+                    series: seriesList
+                }, true);
+
+                // -- Chart 2: 同比变化率柱状图 --
+                var yoyRates = calcYoY(values);
+                yoyChart.setOption({
+                    tooltip: Object.assign({trigger:'axis',axisPointer:{type:'shadow'},formatter:function(p){var v=p[0];return v.name+'<br/>同比变化率: '+(v.value!==null?v.value+'%':'--');}},tooltipStyle),
+                    grid: {left:'3%',right:'4%',bottom:'3%',top:'12%',containLabel:true},
+                    xAxis: {type:'category',data:labels,axisLine:axisLineStyle,axisLabel:axisLabelStyle,axisTick:{show:false}},
+                    yAxis: {type:'value',name:'%',nameTextStyle:{color:'#94A3B8',fontSize:12},axisLine:{show:false},axisLabel:axisLabelStyle,splitLine:splitLineStyle},
+                    series: [{
+                        name:'同比变化率',type:'bar',barWidth:20,
+                        itemStyle:{
+                            borderRadius:[4,4,0,0],
+                            color:function(p){return p.value >= 0 ? '#EF4444' : '#10B981';}
+                        },
+                        label:{show:true,position:'top',fontSize:11,color:'#64748B',formatter:function(p){return p.value!==null?p.value+'%':'';}},
+                        data:yoyRates
+                    }]
+                }, true);
+
+                // -- Chart 3: 各排放源趋势对比 (堆叠柱状图) --
+                var stackSeries = [];
+                if (srcKeys.length > 0) {
+                    srcKeys.forEach(function(name,idx){
+                        stackSeries.push({
+                            name:name,type:'bar',stack:'total',barWidth:24,
+                            itemStyle:{color:BLUE[idx % BLUE.length],borderRadius: idx===srcKeys.length-1?[4,4,0,0]:[0,0,0,0]},
+                            data:sourceTrends[name]
+                        });
+                    });
+                } else {
+                    stackSeries.push({
+                        name:'排放量',type:'bar',barWidth:24,
+                        itemStyle:{color:BLUE[0],borderRadius:[4,4,0,0]},
+                        data:values
+                    });
+                }
+                sourceCompareChart.setOption({
+                    tooltip: Object.assign({trigger:'axis',axisPointer:{type:'shadow'}},tooltipStyle),
+                    legend: {top:8,textStyle:{color:'#64748B',fontSize:12}},
+                    grid: {left:'3%',right:'4%',bottom:'3%',top:'48',containLabel:true},
+                    xAxis: {type:'category',data:labels,axisLine:axisLineStyle,axisLabel:axisLabelStyle,axisTick:{show:false}},
+                    yAxis: {type:'value',name:'万吨CO2',nameTextStyle:{color:'#94A3B8',fontSize:12},axisLine:{show:false},axisLabel:axisLabelStyle,splitLine:splitLineStyle},
+                    series: stackSeries
+                }, true);
+            })
+            .catch(function(){
+                trendLineChart.hideLoading();
+                yoyChart.hideLoading();
+                sourceCompareChart.hideLoading();
+            });
+    }
+
+    document.getElementById('btnQuery').addEventListener('click', loadData);
+
+    window.addEventListener('resize', function(){
+        trendLineChart.resize();
+        yoyChart.resize();
+        sourceCompareChart.resize();
+    });
+
+    // 页面加载时触发初始查询
+    loadData();
+})();
+</script>
+{% endblock %}

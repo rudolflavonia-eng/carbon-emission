@@ -1,0 +1,267 @@
+{% extends "front/base.html" %}
+
+{% block page_title %}预警中心{% endblock %}
+
+{% block extra_css %}
+<style>
+.alert-card {
+    background: var(--white);
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    padding: 0;
+    margin-bottom: 16px;
+    display: flex;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+}
+.alert-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.alert-indicator {
+    width: 6px;
+    flex-shrink: 0;
+}
+.alert-indicator.yellow { background: #F59E0B; }
+.alert-indicator.orange { background: #F97316; }
+.alert-indicator.red { background: #EF4444; }
+.alert-card-body {
+    flex: 1;
+    padding: 20px 24px;
+}
+.alert-card.is-read {
+    opacity: 0.65;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 统计卡片 -->
+<div class="row g-3 mb-4">
+    <div class="col">
+        <div class="stat-card">
+            <div class="stat-icon blue">
+                <i class="bi bi-bell" style="font-size:24px;"></i>
+            </div>
+            <div class="stat-value" id="statTotal">--</div>
+            <div class="stat-label">总预警数</div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="stat-card">
+            <div class="stat-icon cyan">
+                <i class="bi bi-envelope" style="font-size:24px;"></i>
+            </div>
+            <div class="stat-value" id="statUnread">--</div>
+            <div class="stat-label">未读预警</div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="stat-card">
+            <div class="stat-icon yellow">
+                <i class="bi bi-exclamation-triangle" style="font-size:24px;"></i>
+            </div>
+            <div class="stat-value" id="statYellow">--</div>
+            <div class="stat-label">黄色预警</div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#FFEDD5;color:#C2410C;">
+                <i class="bi bi-exclamation-circle" style="font-size:24px;"></i>
+            </div>
+            <div class="stat-value" id="statOrange">--</div>
+            <div class="stat-label">橙色预警</div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="stat-card">
+            <div class="stat-icon red">
+                <i class="bi bi-x-octagon" style="font-size:24px;"></i>
+            </div>
+            <div class="stat-value" id="statRed">--</div>
+            <div class="stat-label">红色预警</div>
+        </div>
+    </div>
+</div>
+
+<!-- 筛选栏 -->
+<div class="filter-bar">
+    <div class="d-flex align-items-center me-2">
+        <i class="bi bi-funnel me-2" style="color:var(--primary);"></i>
+        <span class="fw-bold" style="font-size:14px;white-space:nowrap;">数据筛选</span>
+    </div>
+    <form method="get" class="d-flex align-items-center gap-3 flex-wrap" style="flex:1;">
+        <select name="level" class="form-select form-select-sm">
+            <option value="">全部级别</option>
+            <option value="yellow" {% if request.GET.level == 'yellow' %}selected{% endif %}>黄色预警</option>
+            <option value="orange" {% if request.GET.level == 'orange' %}selected{% endif %}>橙色预警</option>
+            <option value="red" {% if request.GET.level == 'red' %}selected{% endif %}>红色预警</option>
+        </select>
+        <select name="status" class="form-select form-select-sm">
+            <option value="">全部状态</option>
+            <option value="unread" {% if request.GET.status == 'unread' %}selected{% endif %}>未读</option>
+            <option value="read" {% if request.GET.status == 'read' %}selected{% endif %}>已处理</option>
+        </select>
+        <button class="btn btn-primary btn-sm" type="submit" style="white-space:nowrap;">
+            <i class="bi bi-search me-1"></i>筛选
+        </button>
+    </form>
+</div>
+
+<!-- 预警卡片列表 -->
+<div id="alertList">
+    {% for alert in alerts %}
+    <div class="alert-card {% if alert.is_read %}is-read{% endif %}" id="alert-{{ alert.id }}">
+        <div class="alert-indicator {{ alert.alert_level }}"></div>
+        <div class="alert-card-body">
+            <div class="d-flex align-items-start justify-content-between mb-2">
+                <div class="d-flex align-items-center gap-2">
+                    {% if alert.alert_level == 'red' %}
+                        <span class="badge badge-alert-red">红色预警</span>
+                    {% elif alert.alert_level == 'orange' %}
+                        <span class="badge badge-alert-orange">橙色预警</span>
+                    {% else %}
+                        <span class="badge badge-alert-yellow">黄色预警</span>
+                    {% endif %}
+                    {% if not alert.is_read %}
+                        <span class="badge" style="background:#DBEAFE;color:var(--primary);font-size:11px;">未读</span>
+                    {% endif %}
+                </div>
+                {% if not alert.is_read %}
+                <button class="btn btn-outline-primary btn-sm btn-mark-read" data-id="{{ alert.id }}" style="font-size:12px;">
+                    <i class="bi bi-check2 me-1"></i>标记已读
+                </button>
+                {% else %}
+                <span style="font-size:12px;color:var(--gray-400);"><i class="bi bi-check2-all me-1"></i>已处理</span>
+                {% endif %}
+            </div>
+            <p class="mb-2" style="font-size:14px;color:var(--gray-700);line-height:1.6;">{{ alert.alert_message }}</p>
+            <div class="d-flex align-items-center gap-4 flex-wrap" style="font-size:13px;color:var(--gray-500);">
+                <span>
+                    <i class="bi bi-speedometer2 me-1"></i>
+                    排放值: <strong style="color:var(--danger);">{{ alert.emission_value|floatformat:2 }}</strong> 万吨
+                </span>
+                <span>
+                    <i class="bi bi-shield-check me-1"></i>
+                    阈值: <strong>{{ alert.threshold_value|floatformat:2 }}</strong> 万吨
+                </span>
+                {% if alert.emission_record.region %}
+                <span><i class="bi bi-geo-alt me-1"></i>{{ alert.emission_record.region.name }}</span>
+                {% endif %}
+                {% if alert.emission_record.industry %}
+                <span><i class="bi bi-building me-1"></i>{{ alert.emission_record.industry.name }}</span>
+                {% endif %}
+                <span><i class="bi bi-clock me-1"></i>{{ alert.created_at|date:"Y-m-d H:i" }}</span>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="content-card">
+        <div class="card-body">
+            <div class="empty-state">
+                <i class="bi bi-shield-check" style="font-size:48px;display:block;margin-bottom:12px;"></i>
+                <p class="mb-0">暂无预警信息</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- 分页 -->
+{% if page_obj and page_obj.has_other_pages %}
+<nav class="mt-4 d-flex justify-content-center">
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.level %}&level={{ request.GET.level }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if request.GET.level %}&level={{ request.GET.level }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.level %}&level={{ request.GET.level }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    function getCookie(name) {
+        var value = '; ' + document.cookie;
+        var parts = value.split('; ' + name + '=');
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return '';
+    }
+
+    // Load stats
+    fetch('/alerts/api/stats/')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            document.getElementById('statTotal').textContent = data.total != null ? data.total : '--';
+            document.getElementById('statUnread').textContent = data.unread != null ? data.unread : '--';
+            document.getElementById('statYellow').textContent = data.yellow != null ? data.yellow : '--';
+            document.getElementById('statOrange').textContent = data.orange != null ? data.orange : '--';
+            document.getElementById('statRed').textContent = data.red != null ? data.red : '--';
+        })
+        .catch(function() {});
+
+    // Mark as read
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.btn-mark-read');
+        if (!btn) return;
+
+        var alertId = btn.getAttribute('data-id');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>处理中...';
+
+        fetch('/alerts/' + alertId + '/read/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success || data.status === 'ok') {
+                var card = document.getElementById('alert-' + alertId);
+                if (card) {
+                    card.classList.add('is-read');
+                    btn.outerHTML = '<span style="font-size:12px;color:var(--gray-400);"><i class="bi bi-check2-all me-1"></i>已处理</span>';
+                }
+                // Refresh stats
+                var unreadEl = document.getElementById('statUnread');
+                var cur = parseInt(unreadEl.textContent);
+                if (!isNaN(cur) && cur > 0) unreadEl.textContent = cur - 1;
+            }
+        })
+        .catch(function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check2 me-1"></i>标记已读';
+        });
+    });
+})();
+</script>
+{% endblock %}

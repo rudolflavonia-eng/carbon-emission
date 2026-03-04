@@ -1,0 +1,109 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.0 Chrome/140.0.7339.249 Electron/38.7.2 Safari/537.36" version="29.3.0">
+  <diagram name="图3-1" id="func-arch">
+    <mxGraphModel dx="1426" dy="841" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="edge_title_admin" edge="1" parent="1" source="title" target="admin" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;fontSize=16;fontStyle=0;strokeWidth=1.5;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_title_user" edge="1" parent="1" source="title" target="user" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;fontSize=16;fontStyle=0;strokeWidth=1.5;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="title" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=0;flipV=0;horizontal=1;strokeWidth=1.5;" value="碳排放分析及预测平台" vertex="1">
+          <mxGeometry height="50" width="280" x="445" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="admin" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=0;flipV=0;horizontal=1;strokeWidth=1.5;" value="管理员" vertex="1">
+          <mxGeometry height="40" width="180" x="155" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="admin1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=1.5;horizontal=1;flipV=0;" value="用&lt;div&gt;户&lt;div&gt;管&lt;div&gt;理&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="280" width="40" x="100" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="admin2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=1.5;horizontal=1;flipV=0;" value="数&lt;div&gt;据&lt;div&gt;管&lt;div&gt;理&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="280" width="40" x="150" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="admin3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=1.5;horizontal=1;flipV=0;" value="排&lt;div&gt;放&lt;div&gt;源&lt;div&gt;管&lt;div&gt;理&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="280" width="40" x="200" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="admin4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=1.5;horizontal=1;flipV=0;" value="阈&lt;div&gt;值&lt;div&gt;配&lt;div&gt;置&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="280" width="40" x="250" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="admin5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=1.5;horizontal=1;flipV=0;" value="模&lt;div&gt;型&lt;div&gt;管&lt;div&gt;理&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="280" width="40" x="300" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="admin6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=1.5;horizontal=1;flipV=0;" value="日&lt;div&gt;志&lt;div&gt;管&lt;div&gt;理&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="280" width="40" x="350" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="user" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=0;flipV=0;horizontal=1;strokeWidth=1.5;" value="普通用户" vertex="1">
+          <mxGeometry height="40" width="180" x="710" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="user1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=1.5;horizontal=1;flipV=0;" value="数&lt;div&gt;据&lt;div&gt;仪&lt;div&gt;表&lt;div&gt;盘&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="280" width="40" x="605" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="user2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=1.5;horizontal=1;flipV=0;" value="趋&lt;div&gt;势&lt;div&gt;分&lt;div&gt;析&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="280" width="40" x="655" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="user3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=1.5;horizontal=1;flipV=0;" value="结&lt;div&gt;构&lt;div&gt;分&lt;div&gt;析&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="280" width="40" x="705" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="user4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=1.5;horizontal=1;flipV=0;" value="因&lt;div&gt;素&lt;div&gt;分&lt;div&gt;析&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="280" width="40" x="755" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="user5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=1.5;horizontal=1;flipV=0;" value="智&lt;div&gt;能&lt;div&gt;预&lt;div&gt;测&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="280" width="40" x="805" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="user6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=1.5;horizontal=1;flipV=0;" value="预&lt;div&gt;测&lt;div&gt;历&lt;div&gt;史&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="280" width="40" x="855" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="user7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=1.5;horizontal=1;flipV=0;" value="预&lt;div&gt;警&lt;div&gt;查&lt;div&gt;看&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="280" width="40" x="905" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="user8" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=1.5;horizontal=1;flipV=0;" value="个&lt;div&gt;人&lt;div&gt;中&lt;div&gt;心&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="280" width="40" x="955" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_admin1" edge="1" parent="1" source="admin" target="admin1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;horizontal=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_admin2" edge="1" parent="1" source="admin" target="admin2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;horizontal=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_admin3" edge="1" parent="1" source="admin" target="admin3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;horizontal=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_admin4" edge="1" parent="1" source="admin" target="admin4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;horizontal=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_admin5" edge="1" parent="1" source="admin" target="admin5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;horizontal=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_admin6" edge="1" parent="1" source="admin" target="admin6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;horizontal=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_user1" edge="1" parent="1" source="user" target="user1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;horizontal=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_user2" edge="1" parent="1" source="user" target="user2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;horizontal=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_user3" edge="1" parent="1" source="user" target="user3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;horizontal=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_user4" edge="1" parent="1" source="user" target="user4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;horizontal=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_user5" edge="1" parent="1" source="user" target="user5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;horizontal=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_user6" edge="1" parent="1" source="user" target="user6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;horizontal=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_user7" edge="1" parent="1" source="user" target="user7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;horizontal=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_user8" edge="1" parent="1" source="user" target="user8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;horizontal=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

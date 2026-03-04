@@ -1,0 +1,158 @@
+{% extends "front/base.html" %}
+
+{% block page_title %}个人中心{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- 左侧：用户信息卡片 -->
+    <div class="col-md-4">
+        <div class="content-card">
+            <div class="card-body text-center" style="padding:40px 24px;">
+                <!-- 头像 -->
+                {% if user.profile.avatar %}
+                <div class="mx-auto mb-3" style="width:96px;height:96px;border-radius:50%;overflow:hidden;border:3px solid var(--primary-bg);">
+                    <img src="{{ user.profile.avatar.url }}" alt="头像" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                {% else %}
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center" style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-light));font-size:36px;font-weight:700;color:#fff;">
+                    {{ user.username|first|upper }}
+                </div>
+                {% endif %}
+                <h5 class="mb-1" style="font-weight:600;color:var(--gray-800);">{{ user.username }}</h5>
+                <p class="mb-3" style="font-size:13px;color:var(--gray-500);">{{ user.email|default:"未设置邮箱" }}</p>
+                <div class="d-flex justify-content-center gap-4" style="font-size:13px;color:var(--gray-500);">
+                    <div>
+                        <i class="bi bi-building me-1"></i>
+                        {{ user.profile.organization|default:"未设置机构" }}
+                    </div>
+                    <div>
+                        <i class="bi bi-telephone me-1"></i>
+                        {{ user.profile.phone|default:"未设置" }}
+                    </div>
+                </div>
+                <hr style="margin:24px 0;border-color:var(--gray-200);">
+                <div class="d-flex justify-content-between" style="font-size:13px;color:var(--gray-500);">
+                    <span>注册时间</span>
+                    <span style="color:var(--gray-700);">{{ user.date_joined|date:"Y-m-d" }}</span>
+                </div>
+                <div class="d-flex justify-content-between mt-2" style="font-size:13px;color:var(--gray-500);">
+                    <span>上次登录</span>
+                    <span style="color:var(--gray-700);">{{ user.last_login|date:"Y-m-d H:i"|default:"--" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧：编辑表单 -->
+    <div class="col-md-8">
+        <!-- 基本信息 -->
+        <div class="content-card mb-4">
+            <div class="card-header">
+                <h6><i class="bi bi-pencil-square me-2"></i>编辑个人信息</h6>
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="font-size:14px;">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                <form method="post" action="{% url 'users:profile' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">用户名</label>
+                            <input type="text" class="form-control" value="{{ user.username }}" disabled style="font-size:14px;background:var(--gray-50);">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">邮箱</label>
+                            <input type="email" class="form-control" name="email" value="{{ user.email }}" style="font-size:14px;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">手机号</label>
+                            <input type="text" class="form-control" name="phone" value="{{ user.profile.phone }}" placeholder="请输入手机号" style="font-size:14px;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">所属机构</label>
+                            <input type="text" class="form-control" name="organization" value="{{ user.profile.organization }}" placeholder="请输入所属机构" style="font-size:14px;">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">头像</label>
+                            <input type="file" class="form-control" name="avatar" accept="image/*" style="font-size:14px;">
+                            <div class="form-text" style="font-size:12px;">支持 JPG、PNG 格式，建议尺寸 200x200 像素</div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary" style="padding:8px 32px;font-size:14px;">
+                            <i class="bi bi-check-lg me-1"></i>保存修改
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 修改密码 -->
+        <div class="content-card">
+            <div class="card-header">
+                <h6><i class="bi bi-shield-lock me-2"></i>修改密码</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'users:change_password' %}" id="passwordForm">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">当前密码</label>
+                            <input type="password" class="form-control" name="old_password" required placeholder="请输入当前密码" style="font-size:14px;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">新密码</label>
+                            <input type="password" class="form-control" name="new_password" id="newPassword" required placeholder="请输入新密码" style="font-size:14px;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">确认新密码</label>
+                            <input type="password" class="form-control" name="confirm_password" id="confirmPassword" required placeholder="请再次输入新密码" style="font-size:14px;">
+                        </div>
+                    </div>
+                    <div id="passwordError" class="text-danger mt-2" style="font-size:13px;display:none;"></div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary" style="padding:8px 32px;font-size:14px;">
+                            <i class="bi bi-key me-1"></i>修改密码
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var form = document.getElementById('passwordForm');
+    var errorEl = document.getElementById('passwordError');
+
+    form.addEventListener('submit', function(e) {
+        var newPwd = document.getElementById('newPassword').value;
+        var confirmPwd = document.getElementById('confirmPassword').value;
+        errorEl.style.display = 'none';
+
+        if (newPwd.length < 6) {
+            e.preventDefault();
+            errorEl.textContent = '新密码长度不能少于6个字符';
+            errorEl.style.display = 'block';
+            return;
+        }
+        if (newPwd !== confirmPwd) {
+            e.preventDefault();
+            errorEl.textContent = '两次输入的新密码不一致';
+            errorEl.style.display = 'block';
+            return;
+        }
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,295 @@
+{% extends "front/base.html" %}
+
+{% block page_title %}影响因素分析{% endblock %}
+
+{% block content %}
+<!-- 筛选栏 -->
+<div class="filter-bar">
+    <div class="d-flex align-items-center me-2">
+        <i class="bi bi-funnel me-2" style="color:var(--primary);"></i>
+        <span class="fw-bold" style="font-size:14px;white-space:nowrap;">数据筛选</span>
+    </div>
+    <select id="filterRegion" class="form-select form-select-sm">
+        <option value="">全部地区</option>
+        {% for r in regions %}
+        <option value="{{ r.id }}">{{ r.name }}</option>
+        {% endfor %}
+    </select>
+    <select id="filterStartYear" class="form-select form-select-sm">
+        {% for y in years %}
+        <option value="{{ y }}" {% if y == 2015 %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+    </select>
+    <span style="color:var(--gray-400);font-size:14px;">至</span>
+    <select id="filterEndYear" class="form-select form-select-sm">
+        {% for y in years %}
+        <option value="{{ y }}" {% if y == 2025 %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+    </select>
+    <button class="btn btn-primary btn-sm" id="btnQuery" style="white-space:nowrap;">
+        <i class="bi bi-search me-1"></i>查询
+    </button>
+</div>
+
+<!-- 相关性系数卡片 -->
+<div class="row g-3 mb-3" id="corrCards" style="display:none;">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-currency-yen" style="font-size:24px;"></i></div>
+            <div class="stat-value" id="corrGDP">--</div>
+            <div class="stat-label">GDP 相关系数</div>
+            <div class="stat-change" id="corrGDPDesc"></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-people" style="font-size:24px;"></i></div>
+            <div class="stat-value" id="corrPop">--</div>
+            <div class="stat-label">人口 相关系数</div>
+            <div class="stat-change" id="corrPopDesc"></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon yellow"><i class="bi bi-lightning" style="font-size:24px;"></i></div>
+            <div class="stat-value" id="corrEff">--</div>
+            <div class="stat-label">能源效率 相关系数</div>
+            <div class="stat-change" id="corrEffDesc"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 多轴折线图 -->
+<div class="row g-3 mb-3">
+    <div class="col-12">
+        <div class="content-card">
+            <div class="card-header">
+                <h6><i class="bi bi-activity me-2"></i>多因素趋势对比 (多轴折线图)</h6>
+            </div>
+            <div class="card-body">
+                <div id="multiAxisChart" class="chart-container" style="min-height:420px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 相关性热力图 & 散点图 -->
+<div class="row g-3 mb-3">
+    <div class="col-md-6">
+        <div class="content-card">
+            <div class="card-header">
+                <h6><i class="bi bi-grid-3x3 me-2"></i>相关性热力图</h6>
+            </div>
+            <div class="card-body">
+                <div id="heatmapChart" class="chart-container" style="min-height:380px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="content-card">
+            <div class="card-header">
+                <h6><i class="bi bi-scatter-chart me-2"></i>GDP vs 排放量 散点图</h6>
+            </div>
+            <div class="card-body">
+                <div id="scatterChart" class="chart-container" style="min-height:380px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var BLUE = ['#2563EB','#10B981','#F59E0B','#EF4444','#3B82F6','#06B6D4'];
+    var tooltipStyle = {backgroundColor:'#fff',borderColor:'#E2E8F0',borderWidth:1,textStyle:{color:'#334155',fontSize:13}};
+    var axisLineStyle = {lineStyle:{color:'#E2E8F0'}};
+    var axisLabelStyle = {color:'#64748B',fontSize:12};
+    var splitLineStyle = {lineStyle:{color:'#F1F5F9'}};
+
+    var multiAxisChart = echarts.init(document.getElementById('multiAxisChart'));
+    var heatmapChart = echarts.init(document.getElementById('heatmapChart'));
+    var scatterChart = echarts.init(document.getElementById('scatterChart'));
+
+    function getParams() {
+        return {
+            region: document.getElementById('filterRegion').value,
+            start_year: document.getElementById('filterStartYear').value,
+            end_year: document.getElementById('filterEndYear').value
+        };
+    }
+
+    function corrLabel(v) {
+        var abs = Math.abs(v);
+        if (abs >= 0.8) return 'up';
+        if (abs >= 0.5) return '';
+        return 'down';
+    }
+
+    function corrText(v) {
+        var abs = Math.abs(v);
+        var dir = v >= 0 ? '正' : '负';
+        if (abs >= 0.8) return dir + '相关 (强)';
+        if (abs >= 0.5) return dir + '相关 (中)';
+        if (abs >= 0.3) return dir + '相关 (弱)';
+        return '相关性不显著';
+    }
+
+    function loadData() {
+        var params = getParams();
+        var qs = Object.keys(params).filter(function(k){return params[k];}).map(function(k){return k+'='+encodeURIComponent(params[k]);}).join('&');
+
+        multiAxisChart.showLoading({text:'加载中...',color:BLUE[0]});
+        heatmapChart.showLoading({text:'加载中...',color:BLUE[0]});
+        scatterChart.showLoading({text:'加载中...',color:BLUE[0]});
+
+        var factorUrl = '/analysis/api/factor-data/' + (qs ? '?' + qs : '');
+        var corrUrl = '/analysis/api/correlation/' + (qs ? '?' + qs : '');
+
+        Promise.all([
+            fetch(factorUrl).then(function(r){return r.json();}),
+            fetch(corrUrl).then(function(r){return r.json();})
+        ]).then(function(results){
+            var fd = results[0].data || results[0];
+            var cd = results[1].data || results[1];
+
+            multiAxisChart.hideLoading();
+            heatmapChart.hideLoading();
+            scatterChart.hideLoading();
+
+            var years = fd.years || [];
+            var emissions = fd.emissions || [];
+            var gdp = fd.gdp || [];
+            var population = fd.population || [];
+            var efficiency = fd.energy_efficiency || [];
+            var corr = cd.correlations || {};
+
+            // -- 相关系数卡片 --
+            document.getElementById('corrCards').style.display = '';
+            var gdpCorr = corr['GDP'] !== undefined ? corr['GDP'] : '--';
+            var popCorr = corr['人口'] !== undefined ? corr['人口'] : '--';
+            var effCorr = corr['能源效率'] !== undefined ? corr['能源效率'] : '--';
+
+            document.getElementById('corrGDP').textContent = gdpCorr;
+            document.getElementById('corrPop').textContent = popCorr;
+            document.getElementById('corrEff').textContent = effCorr;
+
+            if (typeof gdpCorr === 'number') document.getElementById('corrGDPDesc').textContent = corrText(gdpCorr);
+            if (typeof popCorr === 'number') document.getElementById('corrPopDesc').textContent = corrText(popCorr);
+            if (typeof effCorr === 'number') document.getElementById('corrEffDesc').textContent = corrText(effCorr);
+
+            // -- Chart 1: 多轴折线图 --
+            multiAxisChart.setOption({
+                tooltip: Object.assign({trigger:'axis',axisPointer:{type:'cross'}},tooltipStyle),
+                legend: {data:['排放量','GDP','人口','能源效率'],top:8,textStyle:{color:'#64748B',fontSize:12}},
+                grid: {left:'3%',right:'8%',bottom:'3%',top:'52',containLabel:true},
+                xAxis: {type:'category',data:years.map(String),axisLine:axisLineStyle,axisLabel:axisLabelStyle,axisTick:{show:false},boundaryGap:false},
+                yAxis: [
+                    {type:'value',name:'万吨 / 亿元 / 万人',nameTextStyle:{color:'#94A3B8',fontSize:11},axisLine:{show:false},axisLabel:axisLabelStyle,splitLine:splitLineStyle},
+                    {type:'value',name:'能源效率',nameTextStyle:{color:'#94A3B8',fontSize:11},axisLine:{show:false},axisLabel:{color:'#64748B',fontSize:12},splitLine:{show:false}}
+                ],
+                series: [
+                    {name:'排放量',type:'line',smooth:true,symbol:'circle',symbolSize:6,lineStyle:{width:2.5,color:BLUE[0]},itemStyle:{color:BLUE[0],borderColor:'#fff',borderWidth:2},
+                     areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(37,99,235,0.15)'},{offset:1,color:'rgba(37,99,235,0.01)'}])},data:emissions},
+                    {name:'GDP',type:'line',smooth:true,symbol:'diamond',symbolSize:6,lineStyle:{width:2,color:BLUE[1]},itemStyle:{color:BLUE[1]},data:gdp},
+                    {name:'人口',type:'line',smooth:true,symbol:'rect',symbolSize:5,lineStyle:{width:2,color:BLUE[2]},itemStyle:{color:BLUE[2]},data:population},
+                    {name:'能源效率',type:'line',smooth:true,symbol:'triangle',symbolSize:6,yAxisIndex:1,lineStyle:{width:2,color:BLUE[3],type:'dashed'},itemStyle:{color:BLUE[3]},data:efficiency}
+                ]
+            }, true);
+
+            // -- Chart 2: 相关性热力图 --
+            var factors = ['排放量','GDP','人口','能源效率'];
+            var vectors = [emissions, gdp, population, efficiency];
+
+            function pearsonCorr(a, b) {
+                if (a.length < 2) return 0;
+                var n = a.length;
+                var sumA=0,sumB=0,sumAB=0,sumA2=0,sumB2=0;
+                for (var i=0;i<n;i++){sumA+=a[i];sumB+=b[i];sumAB+=a[i]*b[i];sumA2+=a[i]*a[i];sumB2+=b[i]*b[i];}
+                var num = n*sumAB - sumA*sumB;
+                var den = Math.sqrt((n*sumA2-sumA*sumA)*(n*sumB2-sumB*sumB));
+                return den === 0 ? 0 : num/den;
+            }
+
+            var heatData = [];
+            for (var i=0;i<factors.length;i++){
+                for (var j=0;j<factors.length;j++){
+                    var val = parseFloat(pearsonCorr(vectors[i],vectors[j]).toFixed(4));
+                    heatData.push([i,j,val]);
+                }
+            }
+
+            heatmapChart.setOption({
+                tooltip: Object.assign({formatter:function(p){return p.data[2].toFixed(4);}},tooltipStyle),
+                grid: {left:'18%',right:'12%',top:'8%',bottom:'18%'},
+                xAxis: {type:'category',data:factors,axisLine:axisLineStyle,axisLabel:{color:'#334155',fontSize:12,rotate:0},axisTick:{show:false},splitArea:{show:false}},
+                yAxis: {type:'category',data:factors,axisLine:axisLineStyle,axisLabel:{color:'#334155',fontSize:12},axisTick:{show:false},splitArea:{show:false}},
+                visualMap: {min:-1,max:1,calculable:false,orient:'horizontal',left:'center',bottom:4,
+                    inRange:{color:['#EF4444','#FEE2E2','#F8FAFC','#DBEAFE','#2563EB']},
+                    textStyle:{color:'#64748B',fontSize:11}
+                },
+                series: [{
+                    name:'相关性',type:'heatmap',
+                    data:heatData,
+                    label:{show:true,fontSize:13,fontWeight:'bold',color:'#334155',formatter:function(p){return p.data[2].toFixed(2);}},
+                    itemStyle:{borderColor:'#fff',borderWidth:2},
+                    emphasis:{itemStyle:{shadowBlur:6,shadowColor:'rgba(0,0,0,0.15)'}}
+                }]
+            }, true);
+
+            // -- Chart 3: GDP vs 排放量 散点图 + 回归线 --
+            var scatterData = [];
+            for (var k=0;k<years.length;k++){
+                scatterData.push([gdp[k], emissions[k], years[k]]);
+            }
+
+            // 线性回归
+            var regLine = [];
+            if (gdp.length >= 2) {
+                var n = gdp.length;
+                var sx=0,sy=0,sxy=0,sx2=0;
+                for (var m=0;m<n;m++){sx+=gdp[m];sy+=emissions[m];sxy+=gdp[m]*emissions[m];sx2+=gdp[m]*gdp[m];}
+                var slope = (n*sxy-sx*sy)/(n*sx2-sx*sx);
+                var intercept = (sy-slope*sx)/n;
+                var xMin = Math.min.apply(null,gdp);
+                var xMax = Math.max.apply(null,gdp);
+                regLine = [[xMin,slope*xMin+intercept],[xMax,slope*xMax+intercept]];
+            }
+
+            scatterChart.setOption({
+                tooltip: Object.assign({formatter:function(p){if(p.seriesType==='scatter'){return p.data[2]+'年<br/>GDP: '+p.data[0].toLocaleString()+' 亿元<br/>排放量: '+p.data[1].toLocaleString()+' 万吨';}return '';}},tooltipStyle),
+                grid: {left:'3%',right:'6%',bottom:'3%',top:'8%',containLabel:true},
+                xAxis: {type:'value',name:'GDP (亿元)',nameTextStyle:{color:'#94A3B8',fontSize:12},axisLine:axisLineStyle,axisLabel:axisLabelStyle,splitLine:splitLineStyle},
+                yAxis: {type:'value',name:'排放量 (万吨)',nameTextStyle:{color:'#94A3B8',fontSize:12},axisLine:{show:false},axisLabel:axisLabelStyle,splitLine:splitLineStyle},
+                series: [
+                    {name:'年度数据',type:'scatter',symbolSize:14,
+                     itemStyle:{color:BLUE[0],borderColor:'#fff',borderWidth:2,shadowBlur:4,shadowColor:'rgba(37,99,235,0.3)'},
+                     data:scatterData
+                    },
+                    {name:'回归线',type:'line',symbol:'none',
+                     lineStyle:{color:'#EF4444',width:2,type:'dashed'},
+                     data:regLine,
+                     tooltip:{show:false}
+                    }
+                ]
+            }, true);
+        }).catch(function(){
+            multiAxisChart.hideLoading();
+            heatmapChart.hideLoading();
+            scatterChart.hideLoading();
+        });
+    }
+
+    document.getElementById('btnQuery').addEventListener('click', loadData);
+
+    window.addEventListener('resize', function(){
+        multiAxisChart.resize();
+        heatmapChart.resize();
+        scatterChart.resize();
+    });
+
+    // 页面加载时触发初始查询
+    loadData();
+})();
+</script>
+{% endblock %}

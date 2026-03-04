@@ -1,0 +1,423 @@
+{% extends "front/base.html" %}
+
+{% block page_title %}智能预测{% endblock %}
+
+{% block content %}
+<!-- 模型说明卡片 -->
+<div class="content-card mb-4">
+    <div class="card-header">
+        <h6><i class="bi bi-info-circle me-2"></i>预测模型说明</h6>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:#DBEAFE;">
+                        <i class="bi bi-diagram-3" style="color:var(--primary);font-size:18px;"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1" style="font-size:14px;font-weight:600;">LSTM (长短期记忆网络)</h6>
+                        <p class="mb-0" style="font-size:13px;color:var(--gray-500);">擅长捕捉时间序列中的长期依赖关系，适合具有明显趋势特征的排放数据预测。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:#DBEAFE;">
+                        <i class="bi bi-grid-3x3" style="color:var(--primary);font-size:18px;"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1" style="font-size:14px;font-weight:600;">CNN (卷积神经网络)</h6>
+                        <p class="mb-0" style="font-size:13px;color:var(--gray-500);">通过卷积操作提取局部模式特征，对周期性波动和突变特征敏感，预测速度较快。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:#DBEAFE;">
+                        <i class="bi bi-cpu" style="color:var(--primary);font-size:18px;"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1" style="font-size:14px;font-weight:600;">CNN-LSTM (混合模型)</h6>
+                        <p class="mb-0" style="font-size:13px;color:var(--gray-500);">结合CNN的特征提取能力与LSTM的序列建模能力，综合性能最优，推荐使用。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 筛选栏 -->
+<div class="filter-bar">
+    <div class="d-flex align-items-center me-2">
+        <i class="bi bi-sliders me-2" style="color:var(--primary);"></i>
+        <span class="fw-bold" style="font-size:14px;white-space:nowrap;">预测参数</span>
+    </div>
+    <select id="filterRegion" class="form-select form-select-sm">
+        <option value="">全部地区</option>
+        {% for r in regions %}
+        <option value="{{ r.id }}">{{ r.name }}</option>
+        {% endfor %}
+    </select>
+    <select id="filterSource" class="form-select form-select-sm">
+        <option value="">全部排放源</option>
+        {% for s in sources %}
+        <option value="{{ s.id }}">{{ s.name }}</option>
+        {% endfor %}
+    </select>
+    <select id="filterModel" class="form-select form-select-sm">
+        <option value="lstm">LSTM</option>
+        <option value="cnn">CNN</option>
+        <option value="cnn_lstm" selected>CNN-LSTM</option>
+    </select>
+    <select id="filterYears" class="form-select form-select-sm">
+        <option value="1">预测1年</option>
+        <option value="2">预测2年</option>
+        <option value="3" selected>预测3年</option>
+        <option value="4">预测4年</option>
+        <option value="5">预测5年</option>
+    </select>
+    <button class="btn btn-primary btn-sm" id="btnPredict" style="white-space:nowrap;">
+        <i class="bi bi-play-circle me-1"></i>开始预测
+    </button>
+</div>
+
+<!-- 加载遮罩 -->
+<div id="loadingOverlay" style="display:none;">
+    <div class="content-card mb-4">
+        <div class="card-body text-center" style="padding:60px 24px;">
+            <div class="spinner-border text-primary mb-3" role="status" style="width:48px;height:48px;">
+                <span class="visually-hidden">加载中...</span>
+            </div>
+            <p class="mb-0" style="color:var(--gray-500);font-size:15px;">模型正在预测中，请稍候...</p>
+        </div>
+    </div>
+</div>
+
+<!-- 预测结果区域 -->
+<div id="resultArea" style="display:none;">
+    <!-- 预测趋势图 -->
+    <div class="content-card mb-4">
+        <div class="card-header">
+            <h6><i class="bi bi-graph-up-arrow me-2"></i>排放趋势预测</h6>
+            <span id="chartModelLabel" class="badge" style="background:var(--primary);font-size:12px;"></span>
+        </div>
+        <div class="card-body">
+            <div id="predictionChart" class="chart-container" style="min-height:420px;"></div>
+        </div>
+    </div>
+
+    <!-- 模型评估指标 -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class="bi bi-bullseye" style="font-size:24px;"></i>
+                </div>
+                <div class="stat-value" id="metricMAE">--</div>
+                <div class="stat-label">MAE (平均绝对误差)</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon cyan">
+                    <i class="bi bi-crosshair" style="font-size:24px;"></i>
+                </div>
+                <div class="stat-value" id="metricRMSE">--</div>
+                <div class="stat-label">RMSE (均方根误差)</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class="bi bi-check2-circle" style="font-size:24px;"></i>
+                </div>
+                <div class="stat-value" id="metricR2">--</div>
+                <div class="stat-label">R2 (决定系数)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 预测结果表格 -->
+    <div class="content-card">
+        <div class="card-header">
+            <h6><i class="bi bi-table me-2"></i>预测结果明细</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-custom mb-0">
+                    <thead>
+                        <tr>
+                            <th>预测年份</th>
+                            <th>预测排放量 (万吨CO2)</th>
+                            <th>置信区间下限</th>
+                            <th>置信区间上限</th>
+                            <th>置信度</th>
+                        </tr>
+                    </thead>
+                    <tbody id="predictionTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var BLUE = '#2563EB';
+    var RED = '#EF4444';
+    var predictionChart = null;
+
+    function getCookie(name) {
+        var value = '; ' + document.cookie;
+        var parts = value.split('; ' + name + '=');
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return '';
+    }
+
+    var btnPredict = document.getElementById('btnPredict');
+    var loadingOverlay = document.getElementById('loadingOverlay');
+    var resultArea = document.getElementById('resultArea');
+
+    btnPredict.addEventListener('click', function() {
+        var region = document.getElementById('filterRegion').value;
+        var source = document.getElementById('filterSource').value;
+        var model_type = document.getElementById('filterModel').value;
+        var predict_years = document.getElementById('filterYears').value;
+
+        loadingOverlay.style.display = 'block';
+        resultArea.style.display = 'none';
+        btnPredict.disabled = true;
+
+        fetch('/prediction/api/predict/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                region: region,
+                source: source,
+                model_type: model_type,
+                predict_years: parseInt(predict_years)
+            })
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(resp) {
+            loadingOverlay.style.display = 'none';
+            btnPredict.disabled = false;
+
+            if (resp.code !== 0) {
+                alert(resp.msg || '预测失败');
+                return;
+            }
+
+            // 将API返回的嵌套结构转换为渲染函数期望的扁平结构
+            var d = resp.data;
+            var histYears = d.history.years || [];
+            var histValues = d.history.values || [];
+            var predYears = [], predValues = [], predConfidences = [];
+            (d.predictions || []).forEach(function(p) {
+                predYears.push(p.year);
+                predValues.push(p.predicted);
+                predConfidences.push(p.confidence || 0.95);
+            });
+            // 根据置信度生成置信区间上下限
+            var predUpper = predValues.map(function(v, i) {
+                return Math.round((v * (1 + (1 - predConfidences[i]) * 1.5)) * 100) / 100;
+            });
+            var predLower = predValues.map(function(v, i) {
+                return Math.round((v * (1 - (1 - predConfidences[i]) * 1.5)) * 100) / 100;
+            });
+
+            var chartData = {
+                model_type: d.model_type,
+                historical_years: histYears,
+                historical_values: histValues,
+                predicted_years: predYears,
+                predicted_values: predValues,
+                predicted_upper: predUpper,
+                predicted_lower: predLower,
+                confidence: predConfidences[0] || 0.95,
+                metrics: d.metrics || {}
+            };
+
+            resultArea.style.display = 'block';
+            renderChart(chartData);
+            renderMetrics(chartData);
+            renderTable(chartData);
+        })
+        .catch(function(err) {
+            loadingOverlay.style.display = 'none';
+            btnPredict.disabled = false;
+            alert('预测请求失败，请稍后重试');
+        });
+    });
+
+    function renderChart(data) {
+        var chartDom = document.getElementById('predictionChart');
+        if (predictionChart) {
+            predictionChart.dispose();
+        }
+        predictionChart = echarts.init(chartDom);
+
+        var modelLabels = {lstm: 'LSTM', cnn: 'CNN', cnn_lstm: 'CNN-LSTM'};
+        document.getElementById('chartModelLabel').textContent = modelLabels[data.model_type] || data.model_type;
+
+        var histYears = data.historical_years || [];
+        var histValues = data.historical_values || [];
+        var predYears = data.predicted_years || [];
+        var predValues = data.predicted_values || [];
+        var predUpper = data.predicted_upper || [];
+        var predLower = data.predicted_lower || [];
+
+        // Build continuous arrays for the chart
+        var allYears = histYears.concat(predYears);
+
+        // Historical series: values for historical period, null for predicted
+        var histSeries = histValues.slice();
+        for (var i = 0; i < predYears.length; i++) histSeries.push(null);
+
+        // Prediction series: null for historical period (except last point for connection), values for predicted
+        var predSeries = [];
+        for (var i = 0; i < histYears.length - 1; i++) predSeries.push(null);
+        if (histValues.length > 0) predSeries.push(histValues[histValues.length - 1]);
+        predSeries = predSeries.concat(predValues);
+
+        // Confidence bands
+        var upperSeries = [];
+        var lowerSeries = [];
+        for (var i = 0; i < histYears.length; i++) {
+            upperSeries.push(null);
+            lowerSeries.push(null);
+        }
+        upperSeries = upperSeries.concat(predUpper);
+        lowerSeries = lowerSeries.concat(predLower);
+
+        var tooltipStyle = {
+            backgroundColor: '#fff',
+            borderColor: '#E2E8F0',
+            borderWidth: 1,
+            textStyle: { color: '#334155', fontSize: 13 }
+        };
+
+        predictionChart.setOption({
+            tooltip: Object.assign({ trigger: 'axis' }, tooltipStyle),
+            legend: {
+                data: ['历史数据', '预测数据', '置信区间上限', '置信区间下限'],
+                bottom: 0,
+                textStyle: { color: '#64748B', fontSize: 13 },
+                itemWidth: 16,
+                itemHeight: 2
+            },
+            grid: {
+                left: '3%', right: '4%', bottom: '14%', top: '8%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: allYears,
+                boundaryGap: false,
+                axisLine: { lineStyle: { color: '#E2E8F0' } },
+                axisLabel: { color: '#64748B', fontSize: 12 },
+                axisTick: { show: false }
+            },
+            yAxis: {
+                type: 'value',
+                name: '万吨CO2',
+                nameTextStyle: { color: '#94A3B8', fontSize: 12 },
+                axisLine: { show: false },
+                axisLabel: { color: '#64748B', fontSize: 12 },
+                splitLine: { lineStyle: { color: '#F1F5F9' } }
+            },
+            series: [
+                {
+                    name: '历史数据',
+                    type: 'line',
+                    data: histSeries,
+                    smooth: true,
+                    symbol: 'circle',
+                    symbolSize: 8,
+                    lineStyle: { width: 3, color: BLUE, type: 'solid' },
+                    itemStyle: { color: BLUE, borderColor: '#fff', borderWidth: 2 },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(37,99,235,0.15)' },
+                            { offset: 1, color: 'rgba(37,99,235,0.01)' }
+                        ])
+                    }
+                },
+                {
+                    name: '预测数据',
+                    type: 'line',
+                    data: predSeries,
+                    smooth: true,
+                    symbol: 'diamond',
+                    symbolSize: 8,
+                    lineStyle: { width: 3, color: RED, type: 'dashed' },
+                    itemStyle: { color: RED, borderColor: '#fff', borderWidth: 2 }
+                },
+                {
+                    name: '置信区间上限',
+                    type: 'line',
+                    data: upperSeries,
+                    smooth: true,
+                    lineStyle: { width: 0 },
+                    symbol: 'none',
+                    stack: 'confidence',
+                    areaStyle: { color: 'transparent' }
+                },
+                {
+                    name: '置信区间下限',
+                    type: 'line',
+                    data: lowerSeries.map(function(v, idx) {
+                        if (v === null || upperSeries[idx] === null) return null;
+                        return upperSeries[idx] - v;
+                    }),
+                    smooth: true,
+                    lineStyle: { width: 0 },
+                    symbol: 'none',
+                    stack: 'confidence',
+                    areaStyle: { color: 'rgba(239,68,68,0.12)' }
+                }
+            ]
+        });
+
+        window.addEventListener('resize', function() {
+            if (predictionChart) predictionChart.resize();
+        });
+    }
+
+    function renderMetrics(data) {
+        var metrics = data.metrics || {};
+        document.getElementById('metricMAE').textContent = metrics.mae != null ? metrics.mae.toFixed(4) : '--';
+        document.getElementById('metricRMSE').textContent = metrics.rmse != null ? metrics.rmse.toFixed(4) : '--';
+        document.getElementById('metricR2').textContent = metrics.r2 != null ? metrics.r2.toFixed(4) : '--';
+    }
+
+    function renderTable(data) {
+        var tbody = document.getElementById('predictionTableBody');
+        tbody.innerHTML = '';
+        var years = data.predicted_years || [];
+        var values = data.predicted_values || [];
+        var upper = data.predicted_upper || [];
+        var lower = data.predicted_lower || [];
+        var confidence = data.confidence || 0.95;
+
+        for (var i = 0; i < years.length; i++) {
+            var tr = document.createElement('tr');
+            tr.innerHTML =
+                '<td><span class="fw-bold">' + years[i] + '</span></td>' +
+                '<td>' + (values[i] != null ? values[i].toFixed(2) : '--') + '</td>' +
+                '<td>' + (lower[i] != null ? lower[i].toFixed(2) : '--') + '</td>' +
+                '<td>' + (upper[i] != null ? upper[i].toFixed(2) : '--') + '</td>' +
+                '<td><span class="badge" style="background:#DBEAFE;color:var(--primary);">' + (confidence * 100).toFixed(0) + '%</span></td>';
+            tbody.appendChild(tr);
+        }
+    }
+})();
+</script>
+{% endblock %}

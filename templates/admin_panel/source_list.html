@@ -1,0 +1,62 @@
+{% extends "admin_panel/base.html" %}
+
+{% block page_title %}排放源管理{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    {% for source in sources %}
+    <div class="col-md-6">
+        <div class="content-card">
+            <div class="card-header">
+                <h6>
+                    <i class="bi bi-tag me-2"></i>{{ source.name }}
+                    <span class="badge bg-primary bg-opacity-10 text-primary ms-2" style="font-size:12px;">{{ source.code }}</span>
+                </h6>
+                <span class="badge bg-light text-dark" style="font-size:12px;">{{ source.industries.count }} 个行业</span>
+            </div>
+            <div class="card-body">
+                {% if source.description %}
+                <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px;">{{ source.description }}</p>
+                {% endif %}
+
+                {% if source.industries.all %}
+                <div class="table-responsive">
+                    <table class="table table-custom mb-0" style="font-size:13px;">
+                        <thead>
+                            <tr>
+                                <th>行业编码</th>
+                                <th>行业名称</th>
+                                <th>描述</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for industry in source.industries.all %}
+                            <tr>
+                                <td><code>{{ industry.code }}</code></td>
+                                <td>{{ industry.name }}</td>
+                                <td style="color:var(--gray-500);">{{ industry.description|truncatechars:30|default:"--" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3" style="color:var(--gray-400);font-size:13px;">
+                    <i class="bi bi-inbox me-1"></i>暂无行业数据
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="content-card">
+            <div class="card-body text-center py-5" style="color:var(--gray-400);">
+                <i class="bi bi-inbox" style="font-size:48px;display:block;margin-bottom:12px;"></i>
+                <p class="mb-0">暂无排放源数据</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

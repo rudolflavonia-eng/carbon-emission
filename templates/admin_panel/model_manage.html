@@ -1,0 +1,136 @@
+{% extends "admin_panel/base.html" %}
+
+{% block page_title %}预测模型管理{% endblock %}
+
+{% block content %}
+<!-- 模型类型卡片 -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="content-card">
+            <div class="card-body text-center" style="padding:32px 24px;">
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center" style="width:64px;height:64px;border-radius:16px;background:#DBEAFE;">
+                    <i class="bi bi-diagram-3" style="font-size:28px;color:var(--primary);"></i>
+                </div>
+                <h6 style="font-weight:600;color:var(--gray-800);">LSTM</h6>
+                <p style="font-size:13px;color:var(--gray-500);margin-bottom:0;">长短期记忆网络，擅长捕捉时间序列中的长期依赖关系，适用于碳排放趋势预测。</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="content-card">
+            <div class="card-body text-center" style="padding:32px 24px;">
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center" style="width:64px;height:64px;border-radius:16px;background:#D1FAE5;">
+                    <i class="bi bi-grid-3x3-gap" style="font-size:28px;color:var(--success);"></i>
+                </div>
+                <h6 style="font-weight:600;color:var(--gray-800);">CNN</h6>
+                <p style="font-size:13px;color:var(--gray-500);margin-bottom:0;">卷积神经网络，通过卷积核提取局部特征，适用于多维碳排放数据的模式识别。</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="content-card">
+            <div class="card-body text-center" style="padding:32px 24px;">
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center" style="width:64px;height:64px;border-radius:16px;background:#FEF3C7;">
+                    <i class="bi bi-cpu" style="font-size:28px;color:var(--warning);"></i>
+                </div>
+                <h6 style="font-weight:600;color:var(--gray-800);">CNN-LSTM</h6>
+                <p style="font-size:13px;color:var(--gray-500);margin-bottom:0;">混合模型，结合CNN的特征提取能力与LSTM的时序建模优势，预测精度更高。</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 预测结果表格 -->
+<div class="content-card">
+    <div class="card-header">
+        <h6><i class="bi bi-table me-2"></i>预测结果记录</h6>
+        {% if page_obj %}
+        <span style="font-size:13px;color:var(--gray-500);">共 {{ page_obj.paginator.count }} 条记录</span>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>预测年份</th>
+                        <th>预测排放量(万吨)</th>
+                        <th>模型类型</th>
+                        <th>MAE</th>
+                        <th>RMSE</th>
+                        <th>R2</th>
+                        <th>创建人</th>
+                        <th>创建时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in predictions %}
+                    <tr>
+                        <td><strong>{{ p.target_year }}Q{{ p.target_quarter }}</strong></td>
+                        <td style="color:var(--primary);font-weight:600;">{{ p.predicted_amount|floatformat:2 }}</td>
+                        <td>
+                            {% if p.model_type == 'lstm' %}
+                                <span class="badge" style="background:#DBEAFE;color:var(--primary);">LSTM</span>
+                            {% elif p.model_type == 'cnn' %}
+                                <span class="badge" style="background:#D1FAE5;color:#059669;">CNN</span>
+                            {% else %}
+                                <span class="badge" style="background:#FEF3C7;color:#B45309;">CNN-LSTM</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size:13px;">{{ p.mae|floatformat:4|default:"--" }}</td>
+                        <td style="font-size:13px;">{{ p.rmse|floatformat:4|default:"--" }}</td>
+                        <td style="font-size:13px;">{{ p.r2_score|floatformat:4|default:"--" }}</td>
+                        <td style="font-size:13px;">{{ p.created_by.username|default:"--" }}</td>
+                        <td style="white-space:nowrap;color:var(--gray-500);font-size:13px;">{{ p.created_at|date:"Y-m-d H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5" style="color:var(--gray-400);">
+                            <i class="bi bi-cpu" style="font-size:36px;display:block;margin-bottom:8px;"></i>
+                            暂无预测结果
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 分页 -->
+{% if page_obj and page_obj.has_other_pages %}
+<nav class="mt-4 d-flex justify-content-center">
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

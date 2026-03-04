@@ -1,0 +1,209 @@
+{% extends "front/base.html" %}
+
+{% block page_title %}排放结构分析{% endblock %}
+
+{% block content %}
+<!-- 筛选栏 -->
+<div class="filter-bar">
+    <div class="d-flex align-items-center me-2">
+        <i class="bi bi-funnel me-2" style="color:var(--primary);"></i>
+        <span class="fw-bold" style="font-size:14px;white-space:nowrap;">数据筛选</span>
+    </div>
+    <select id="filterYear" class="form-select form-select-sm">
+        {% for y in years %}
+        <option value="{{ y }}" {% if y == 2025 %}selected{% endif %}>{{ y }}年</option>
+        {% endfor %}
+    </select>
+    <div class="d-flex align-items-center gap-2 ms-1">
+        <div class="form-check form-check-inline mb-0">
+            <input class="form-check-input" type="radio" name="dimension" id="dimSource" value="source" checked>
+            <label class="form-check-label" for="dimSource" style="font-size:14px;">排放源</label>
+        </div>
+        <div class="form-check form-check-inline mb-0">
+            <input class="form-check-input" type="radio" name="dimension" id="dimIndustry" value="industry">
+            <label class="form-check-label" for="dimIndustry" style="font-size:14px;">行业</label>
+        </div>
+        <div class="form-check form-check-inline mb-0">
+            <input class="form-check-input" type="radio" name="dimension" id="dimRegion" value="region">
+            <label class="form-check-label" for="dimRegion" style="font-size:14px;">地区</label>
+        </div>
+    </div>
+    <button class="btn btn-primary btn-sm" id="btnQuery" style="white-space:nowrap;">
+        <i class="bi bi-search me-1"></i>查询
+    </button>
+</div>
+
+<!-- 环形饼图 & 横向柱状图 -->
+<div class="row g-3 mb-3">
+    <div class="col-md-5">
+        <div class="content-card">
+            <div class="card-header">
+                <h6><i class="bi bi-pie-chart me-2"></i>排放结构占比</h6>
+                <span id="totalBadge" class="badge" style="background:var(--primary-bg);color:var(--primary);font-size:13px;"></span>
+            </div>
+            <div class="card-body">
+                <div id="pieChart" class="chart-container" style="min-height:380px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7">
+        <div class="content-card">
+            <div class="card-header">
+                <h6><i class="bi bi-bar-chart-line me-2"></i>排放量排名</h6>
+            </div>
+            <div class="card-body">
+                <div id="barChart" class="chart-container" style="min-height:380px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TreeMap 层级结构图 -->
+<div class="row g-3 mb-3">
+    <div class="col-12">
+        <div class="content-card">
+            <div class="card-header">
+                <h6><i class="bi bi-diagram-3 me-2"></i>排放层级结构 (TreeMap)</h6>
+            </div>
+            <div class="card-body">
+                <div id="treemapChart" class="chart-container" style="min-height:400px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var BLUE = ['#2563EB','#3B82F6','#60A5FA','#93C5FD','#1E40AF','#1D4ED8','#BFDBFE','#06B6D4','#0EA5E9','#38BDF8'];
+    var tooltipStyle = {backgroundColor:'#fff',borderColor:'#E2E8F0',borderWidth:1,textStyle:{color:'#334155',fontSize:13}};
+    var axisLineStyle = {lineStyle:{color:'#E2E8F0'}};
+    var axisLabelStyle = {color:'#64748B',fontSize:12};
+    var splitLineStyle = {lineStyle:{color:'#F1F5F9'}};
+
+    var pieChart = echarts.init(document.getElementById('pieChart'));
+    var barChart = echarts.init(document.getElementById('barChart'));
+    var treemapChart = echarts.init(document.getElementById('treemapChart'));
+
+    function getParams() {
+        return {
+            year: document.getElementById('filterYear').value,
+            dimension: document.querySelector('input[name="dimension"]:checked').value
+        };
+    }
+
+    function buildUrl(params) {
+        var qs = Object.keys(params).filter(function(k){return params[k];}).map(function(k){return k+'='+encodeURIComponent(params[k]);}).join('&');
+        return '/analysis/api/structure-data/' + (qs ? '?' + qs : '');
+    }
+
+    function loadData() {
+        var params = getParams();
+        var url = buildUrl(params);
+
+        pieChart.showLoading({text:'加载中...',color:BLUE[0]});
+        barChart.showLoading({text:'加载中...',color:BLUE[0]});
+        treemapChart.showLoading({text:'加载中...',color:BLUE[0]});
+
+        fetch(url)
+            .then(function(res){return res.json();})
+            .then(function(resp){
+                var d = resp.data || resp;
+                var names = d.names || [];
+                var values = d.values || [];
+                var percentages = d.percentages || [];
+                var total = d.total || 0;
+
+                pieChart.hideLoading();
+                barChart.hideLoading();
+                treemapChart.hideLoading();
+
+                document.getElementById('totalBadge').textContent = '总量: ' + total.toLocaleString() + ' 万吨CO2';
+
+                // -- Chart 1: 环形饼图 --
+                var pieData = names.map(function(n,i){
+                    return {name:n, value:values[i]};
+                });
+                pieChart.setOption({
+                    tooltip: Object.assign({trigger:'item',formatter:function(p){return p.name+'<br/>排放量: '+p.value.toLocaleString()+' 万吨<br/>占比: '+p.percent+'%';}},tooltipStyle),
+                    legend: {orient:'vertical',right:8,top:'middle',itemWidth:12,itemHeight:12,itemGap:10,textStyle:{color:'#64748B',fontSize:12}},
+                    color: BLUE,
+                    series: [{
+                        name:'排放结构',type:'pie',radius:['45%','72%'],center:['38%','50%'],
+                        avoidLabelOverlap:true,
+                        itemStyle:{borderRadius:6,borderColor:'#fff',borderWidth:2},
+                        label:{show:false},
+                        emphasis:{
+                            label:{show:true,fontSize:14,fontWeight:'bold',color:'#334155'},
+                            itemStyle:{shadowBlur:10,shadowOffsetX:0,shadowColor:'rgba(0,0,0,0.15)'}
+                        },
+                        labelLine:{show:false},
+                        data:pieData
+                    }]
+                }, true);
+
+                // -- Chart 2: 横向柱状图 (排名) --
+                var sortedIdx = [];
+                for (var i=0; i<names.length; i++) sortedIdx.push(i);
+                sortedIdx.sort(function(a,b){return values[a]-values[b];});
+
+                var barNames = sortedIdx.map(function(i){return names[i];});
+                var barValues = sortedIdx.map(function(i){return values[i];});
+                var barPcts = sortedIdx.map(function(i){return percentages[i];});
+
+                barChart.setOption({
+                    tooltip: Object.assign({trigger:'axis',axisPointer:{type:'shadow'},formatter:function(p){var v=p[0];return v.name+'<br/>排放量: '+v.value.toLocaleString()+' 万吨';}},tooltipStyle),
+                    grid: {left:'3%',right:'12%',bottom:'3%',top:'3%',containLabel:true},
+                    xAxis: {type:'value',name:'万吨CO2',nameTextStyle:{color:'#94A3B8',fontSize:12},axisLine:{show:false},axisLabel:axisLabelStyle,splitLine:splitLineStyle},
+                    yAxis: {type:'category',data:barNames,axisLine:axisLineStyle,axisLabel:{color:'#334155',fontSize:13},axisTick:{show:false}},
+                    series: [{
+                        name:'排放量',type:'bar',barWidth:18,
+                        itemStyle:{borderRadius:[0,4,4,0],color:new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#60A5FA'},{offset:1,color:'#2563EB'}])},
+                        label:{show:true,position:'right',fontSize:11,color:'#64748B',formatter:function(p){var idx=sortedIdx.length-1-barNames.indexOf(p.name);return barPcts[barNames.indexOf(p.name)]+'%';}},
+                        data:barValues
+                    }]
+                }, true);
+
+                // -- Chart 3: TreeMap --
+                var treemapData = names.map(function(n,i){
+                    return {name:n + ' ('+percentages[i]+'%)', value:values[i]};
+                });
+                treemapChart.setOption({
+                    tooltip: Object.assign({formatter:function(p){var raw=p.name.replace(/ \([\d.]+%\)/,'');return raw+'<br/>排放量: '+p.value.toLocaleString()+' 万吨';}},tooltipStyle),
+                    color: BLUE,
+                    series: [{
+                        name:'排放结构',type:'treemap',
+                        width:'96%',height:'88%',left:'2%',top:'4%',
+                        roam:false,nodeClick:false,
+                        breadcrumb:{show:false},
+                        itemStyle:{borderColor:'#fff',borderWidth:2,gapWidth:2},
+                        label:{show:true,fontSize:13,color:'#fff',fontWeight:'bold',formatter:'{b}\n{c} 万吨'},
+                        levels:[{
+                            itemStyle:{borderColor:'#fff',borderWidth:3,gapWidth:3},
+                            upperLabel:{show:false}
+                        }],
+                        data:treemapData
+                    }]
+                }, true);
+            })
+            .catch(function(){
+                pieChart.hideLoading();
+                barChart.hideLoading();
+                treemapChart.hideLoading();
+            });
+    }
+
+    document.getElementById('btnQuery').addEventListener('click', loadData);
+
+    window.addEventListener('resize', function(){
+        pieChart.resize();
+        barChart.resize();
+        treemapChart.resize();
+    });
+
+    // 页面加载时触发初始查询
+    loadData();
+})();
+</script>
+{% endblock %}

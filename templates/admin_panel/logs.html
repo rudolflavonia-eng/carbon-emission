@@ -1,0 +1,117 @@
+{% extends "admin_panel/base.html" %}
+
+{% block page_title %}操作日志{% endblock %}
+
+{% block content %}
+<!-- 筛选栏 -->
+<div class="filter-bar">
+    <div class="d-flex align-items-center me-2">
+        <i class="bi bi-funnel me-2" style="color:var(--primary);"></i>
+        <span class="fw-bold" style="font-size:14px;white-space:nowrap;">日志筛选</span>
+    </div>
+    <form method="get" class="d-flex align-items-center gap-3 flex-wrap" style="flex:1;">
+        <select name="action" class="form-select form-select-sm">
+            <option value="">全部操作</option>
+            {% for code, label in action_choices %}
+            <option value="{{ code }}" {% if request.GET.action == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" name="keyword" class="form-control form-control-sm" placeholder="搜索用户/对象/详情..." value="{{ request.GET.keyword }}" style="max-width:220px;">
+        <button class="btn btn-primary btn-sm" type="submit" style="white-space:nowrap;">
+            <i class="bi bi-search me-1"></i>查询
+        </button>
+    </form>
+</div>
+
+<!-- 日志表格 -->
+<div class="content-card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>用户</th>
+                        <th>操作类型</th>
+                        <th>操作对象</th>
+                        <th>详情</th>
+                        <th>IP</th>
+                        <th>时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.id }}</td>
+                        <td>
+                            <span style="font-weight:500;">{{ log.user.username|default:"--" }}</span>
+                        </td>
+                        <td>
+                            {% if log.action == 'login' or log.action == 'logout' %}
+                                <span class="badge" style="background:#DBEAFE;color:var(--primary);">{{ log.get_action_display }}</span>
+                            {% elif log.action == 'create' or log.action == 'import' %}
+                                <span class="badge" style="background:#D1FAE5;color:#059669;">{{ log.get_action_display }}</span>
+                            {% elif log.action == 'delete' %}
+                                <span class="badge" style="background:#FEE2E2;color:#DC2626;">{{ log.get_action_display }}</span>
+                            {% elif log.action == 'update' %}
+                                <span class="badge" style="background:#FEF3C7;color:#B45309;">{{ log.get_action_display }}</span>
+                            {% else %}
+                                <span class="badge" style="background:var(--gray-100);color:var(--gray-600);">{{ log.get_action_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ log.target|truncatechars:25 }}</td>
+                        <td style="color:var(--gray-500);font-size:13px;">{{ log.detail|truncatechars:40|default:"--" }}</td>
+                        <td style="font-size:13px;color:var(--gray-500);">{{ log.ip_address|default:"--" }}</td>
+                        <td style="white-space:nowrap;color:var(--gray-500);font-size:13px;">{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5" style="color:var(--gray-400);">
+                            <i class="bi bi-inbox" style="font-size:36px;display:block;margin-bottom:8px;"></i>
+                            暂无日志记录
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 分页 -->
+{% if page_obj and page_obj.has_other_pages %}
+<nav class="mt-4 d-flex justify-content-center">
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.action %}&action={{ request.GET.action }}{% endif %}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if request.GET.action %}&action={{ request.GET.action }}{% endif %}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.action %}&action={{ request.GET.action }}{% endif %}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

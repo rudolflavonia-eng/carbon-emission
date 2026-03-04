@@ -1,0 +1,160 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.0 Chrome/140.0.7339.249 Electron/38.7.2 Safari/537.36" version="29.3.0">
+  <diagram name="图4-11" id="er-overall">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="t_profile" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="用户资料表&#xa;(user_profile)" vertex="1">
+          <mxGeometry x="80" y="100" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t_user" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="用户表&#xa;(auth_user)" vertex="1">
+          <mxGeometry x="380" y="100" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t_oplog" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="操作日志表&#xa;(operation_log)" vertex="1">
+          <mxGeometry x="700" y="100" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t_region" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="地区表&#xa;(region)" vertex="1">
+          <mxGeometry x="700" y="280" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t_threshold" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="阈值配置表&#xa;(threshold_config)" vertex="1">
+          <mxGeometry x="1050" y="280" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t_source" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="排放源表&#xa;(emission_source)" vertex="1">
+          <mxGeometry x="80" y="500" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t_industry" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="行业表&#xa;(industry)" vertex="1">
+          <mxGeometry x="380" y="500" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t_record" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="排放记录表&#xa;(emission_record)" vertex="1">
+          <mxGeometry x="700" y="500" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t_alert" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="预警记录表&#xa;(alert_record)" vertex="1">
+          <mxGeometry x="1050" y="500" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t_predict" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="预测结果表&#xa;(prediction_result)" vertex="1">
+          <mxGeometry x="200" y="700" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="r_owns" parent="1" style="rhombus;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="拥有" vertex="1">
+          <mxGeometry x="260" y="100" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="r_produce" parent="1" style="rhombus;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="产生" vertex="1">
+          <mxGeometry x="570" y="100" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="r_contains" parent="1" style="rhombus;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="包含" vertex="1">
+          <mxGeometry x="260" y="500" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="r_records" parent="1" style="rhombus;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="记录" vertex="1">
+          <mxGeometry x="570" y="500" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="r_trigger" parent="1" style="rhombus;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="触发" vertex="1">
+          <mxGeometry x="920" y="500" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="r_region" parent="1" style="rhombus;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="归属" vertex="1">
+          <mxGeometry x="740" y="390" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="r_relate" parent="1" style="rhombus;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="关联" vertex="1">
+          <mxGeometry x="1090" y="390" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="r_execute" parent="1" style="rhombus;whiteSpace=wrap;html=1;strokeWidth=1.5;fontSize=16;" value="执行" vertex="1">
+          <mxGeometry x="280" y="370" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e_profile_owns" edge="1" parent="1" source="t_profile" target="r_owns" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_profile_owns" connectable="0" parent="e_profile_owns" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=#FFFFFF;" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.2" as="geometry"><mxPoint x="0" y="-15" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e_owns_user" edge="1" parent="1" source="r_owns" target="t_user" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_owns_user" connectable="0" parent="e_owns_user" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=#FFFFFF;" value="1" vertex="1">
+          <mxGeometry relative="1" x="0.2" as="geometry"><mxPoint x="0" y="-15" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e_user_produce" edge="1" parent="1" source="t_user" target="r_produce" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_user_produce" connectable="0" parent="e_user_produce" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=#FFFFFF;" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.2" as="geometry"><mxPoint x="0" y="-15" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e_produce_oplog" edge="1" parent="1" source="r_produce" target="t_oplog" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_produce_oplog" connectable="0" parent="e_produce_oplog" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=#FFFFFF;" value="n" vertex="1">
+          <mxGeometry relative="1" x="0.2" as="geometry"><mxPoint x="0" y="-15" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e_source_contains" edge="1" parent="1" source="t_source" target="r_contains" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_source_contains" connectable="0" parent="e_source_contains" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=#FFFFFF;" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.2" as="geometry"><mxPoint x="0" y="-15" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e_contains_industry" edge="1" parent="1" source="r_contains" target="t_industry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_contains_industry" connectable="0" parent="e_contains_industry" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=#FFFFFF;" value="n" vertex="1">
+          <mxGeometry relative="1" x="0.2" as="geometry"><mxPoint x="0" y="-15" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e_industry_records" edge="1" parent="1" source="t_industry" target="r_records" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_industry_records" connectable="0" parent="e_industry_records" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=#FFFFFF;" value="n" vertex="1">
+          <mxGeometry relative="1" x="-0.2" as="geometry"><mxPoint x="0" y="-15" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e_records_record" edge="1" parent="1" source="r_records" target="t_record" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_records_record" connectable="0" parent="e_records_record" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=#FFFFFF;" value="1" vertex="1">
+          <mxGeometry relative="1" x="0.2" as="geometry"><mxPoint x="0" y="-15" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e_record_trigger" edge="1" parent="1" source="t_record" target="r_trigger" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_record_trigger" connectable="0" parent="e_record_trigger" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=#FFFFFF;" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.2" as="geometry"><mxPoint x="0" y="-15" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e_trigger_alert" edge="1" parent="1" source="r_trigger" target="t_alert" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_trigger_alert" connectable="0" parent="e_trigger_alert" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=#FFFFFF;" value="n" vertex="1">
+          <mxGeometry relative="1" x="0.2" as="geometry"><mxPoint x="0" y="-15" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e_region_rregion" edge="1" parent="1" source="t_region" target="r_region" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_region_rregion" connectable="0" parent="e_region_rregion" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=#FFFFFF;" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.2" as="geometry"><mxPoint x="0" y="-15" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e_rregion_record" edge="1" parent="1" source="r_region" target="t_record" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_rregion_record" connectable="0" parent="e_rregion_record" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=#FFFFFF;" value="n" vertex="1">
+          <mxGeometry relative="1" x="0.2" as="geometry"><mxPoint x="0" y="-15" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e_threshold_relate" edge="1" parent="1" source="t_threshold" target="r_relate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_threshold_relate" connectable="0" parent="e_threshold_relate" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=#FFFFFF;" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.2" as="geometry"><mxPoint x="0" y="-15" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e_relate_alert" edge="1" parent="1" source="r_relate" target="t_alert" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_relate_alert" connectable="0" parent="e_relate_alert" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=#FFFFFF;" value="n" vertex="1">
+          <mxGeometry relative="1" x="0.2" as="geometry"><mxPoint x="0" y="-15" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e_user_execute" edge="1" parent="1" source="t_user" target="r_execute" style="endArrow=none;html=1;rounded=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_user_execute" connectable="0" parent="e_user_execute" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=#FFFFFF;" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.2" as="geometry"><mxPoint x="0" y="-15" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e_execute_predict" edge="1" parent="1" source="r_execute" target="t_predict" style="endArrow=none;html=1;rounded=0;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_execute_predict" connectable="0" parent="e_execute_predict" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=#FFFFFF;" value="n" vertex="1">
+          <mxGeometry relative="1" x="0.2" as="geometry"><mxPoint x="0" y="-15" as="offset" /></mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

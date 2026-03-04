@@ -1,0 +1,122 @@
+{% extends "front/base.html" %}
+
+{% block page_title %}预测历史{% endblock %}
+
+{% block content %}
+<!-- 筛选栏 -->
+<div class="filter-bar">
+    <div class="d-flex align-items-center me-2">
+        <i class="bi bi-funnel me-2" style="color:var(--primary);"></i>
+        <span class="fw-bold" style="font-size:14px;white-space:nowrap;">数据筛选</span>
+    </div>
+    <form method="get" class="d-flex align-items-center gap-3 flex-wrap" style="flex:1;">
+        <select name="model_type" class="form-select form-select-sm">
+            <option value="">全部模型</option>
+            <option value="lstm" {% if request.GET.model_type == 'lstm' %}selected{% endif %}>LSTM</option>
+            <option value="cnn" {% if request.GET.model_type == 'cnn' %}selected{% endif %}>CNN</option>
+            <option value="cnn_lstm" {% if request.GET.model_type == 'cnn_lstm' %}selected{% endif %}>CNN-LSTM</option>
+        </select>
+        <button class="btn btn-primary btn-sm" type="submit" style="white-space:nowrap;">
+            <i class="bi bi-search me-1"></i>筛选
+        </button>
+    </form>
+</div>
+
+<!-- 预测历史表格 -->
+<div class="content-card">
+    <div class="card-header">
+        <h6><i class="bi bi-clock-history me-2"></i>预测记录列表</h6>
+        <span class="badge" style="background:var(--primary);font-size:12px;">共 {{ page_obj.paginator.count|default:results.count|default:0 }} 条</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>预测年份</th>
+                        <th>地区</th>
+                        <th>排放源</th>
+                        <th>预测值 (万吨CO2)</th>
+                        <th>模型类型</th>
+                        <th>置信度</th>
+                        <th>MAE</th>
+                        <th>RMSE</th>
+                        <th>R2</th>
+                        <th>预测时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in results %}
+                    <tr>
+                        <td><span class="fw-bold">{{ item.target_year }}Q{{ item.target_quarter }}</span></td>
+                        <td>{{ item.region.name|default:"--" }}</td>
+                        <td>{{ item.source.name|default:"--" }}</td>
+                        <td>{{ item.predicted_amount|floatformat:2 }}</td>
+                        <td>
+                            {% if item.model_type == 'lstm' %}
+                                <span class="badge" style="background:#DBEAFE;color:var(--primary);">LSTM</span>
+                            {% elif item.model_type == 'cnn' %}
+                                <span class="badge" style="background:#D1FAE5;color:#059669;">CNN</span>
+                            {% else %}
+                                <span class="badge" style="background:#E0E7FF;color:#4338CA;">CNN-LSTM</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.confidence|floatformat:2 }}</td>
+                        <td>{{ item.mae|floatformat:4|default:"--" }}</td>
+                        <td>{{ item.rmse|floatformat:4|default:"--" }}</td>
+                        <td>{{ item.r2_score|floatformat:4|default:"--" }}</td>
+                        <td style="white-space:nowrap;color:var(--gray-500);font-size:13px;">{{ item.created_at|date:"Y-m-d H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox" style="font-size:48px;display:block;margin-bottom:12px;"></i>
+                                <p class="mb-0">暂无预测记录</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 分页 -->
+{% if page_obj and page_obj.has_other_pages %}
+<nav class="mt-4 d-flex justify-content-center">
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.model_type %}&model_type={{ request.GET.model_type }}{% endif %}">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if request.GET.model_type %}&model_type={{ request.GET.model_type }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.model_type %}&model_type={{ request.GET.model_type }}{% endif %}">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

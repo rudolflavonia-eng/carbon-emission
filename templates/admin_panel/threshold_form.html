@@ -1,0 +1,115 @@
+{% extends "admin_panel/base.html" %}
+
+{% block page_title %}{{ action }}阈值配置{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="content-card">
+            <div class="card-header">
+                <h6><i class="bi bi-sliders me-2"></i>{{ action }}阈值配置</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <!-- 配置名称 -->
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">配置名称 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" style="font-size:14px;" value="{{ threshold.name|default:'' }}" required placeholder="请输入配置名称">
+                        </div>
+                        <!-- 阈值方法 -->
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">阈值方法 <span class="text-danger">*</span></label>
+                            <select name="method" id="methodSelect" class="form-select" style="font-size:14px;" required>
+                                <option value="">请选择方法</option>
+                                <option value="normal" {% if threshold.method == 'normal' %}selected{% endif %}>正态分布法</option>
+                                <option value="standard" {% if threshold.method == 'standard' %}selected{% endif %}>参考排放标准</option>
+                            </select>
+                        </div>
+                        <!-- 地区 -->
+                        <div class="col-md-4">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">地区 <span style="font-size:12px;color:var(--gray-400);">(可选)</span></label>
+                            <select name="region" class="form-select" style="font-size:14px;">
+                                <option value="">全部地区</option>
+                                {% for r in regions %}
+                                <option value="{{ r.id }}" {% if threshold.region_id == r.id %}selected{% endif %}>{{ r.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- 行业 -->
+                        <div class="col-md-4">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">行业 <span style="font-size:12px;color:var(--gray-400);">(可选)</span></label>
+                            <select name="industry" class="form-select" style="font-size:14px;">
+                                <option value="">全部行业</option>
+                                {% for i in industries %}
+                                <option value="{{ i.id }}" {% if threshold.industry_id == i.id %}selected{% endif %}>{{ i.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- 排放源 -->
+                        <div class="col-md-4">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">排放源 <span style="font-size:12px;color:var(--gray-400);">(可选)</span></label>
+                            <select name="source" class="form-select" style="font-size:14px;">
+                                <option value="">全部排放源</option>
+                                {% for s in sources %}
+                                <option value="{{ s.id }}" {% if threshold.source_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- 均值 (正态分布法) -->
+                        <div class="col-md-4 normal-field">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">均值(mu)</label>
+                            <input type="number" step="0.01" name="mean_value" class="form-control" style="font-size:14px;" value="{{ threshold.mean_value|default:'' }}" placeholder="正态分布均值">
+                        </div>
+                        <!-- 标准差 (正态分布法) -->
+                        <div class="col-md-4 normal-field">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">标准差(sigma)</label>
+                            <input type="number" step="0.01" name="std_value" class="form-control" style="font-size:14px;" value="{{ threshold.std_value|default:'' }}" placeholder="正态分布标准差">
+                        </div>
+                        <!-- 预警上限 -->
+                        <div class="col-md-4">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">预警上限(万吨CO2) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" name="upper_limit" class="form-control" style="font-size:14px;" value="{{ threshold.upper_limit|default:'' }}" required placeholder="排放上限值">
+                        </div>
+                        <!-- 预警级别 -->
+                        <div class="col-md-4">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">预警级别 <span class="text-danger">*</span></label>
+                            <select name="warning_level" class="form-select" style="font-size:14px;" required>
+                                <option value="yellow" {% if threshold.warning_level == 'yellow' %}selected{% endif %}>黄色预警</option>
+                                <option value="orange" {% if threshold.warning_level == 'orange' %}selected{% endif %}>橙色预警</option>
+                                <option value="red" {% if threshold.warning_level == 'red' %}selected{% endif %}>红色预警</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" style="padding:8px 32px;font-size:14px;">
+                            <i class="bi bi-check-lg me-1"></i>提交保存
+                        </button>
+                        <a href="{% url 'alerts:admin_threshold_list' %}" class="btn btn-secondary" style="padding:8px 32px;font-size:14px;">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var methodSelect = document.getElementById('methodSelect');
+    var normalFields = document.querySelectorAll('.normal-field');
+
+    function toggleNormalFields() {
+        var isNormal = methodSelect.value === 'normal';
+        normalFields.forEach(function(el) {
+            el.style.display = isNormal ? '' : 'none';
+        });
+    }
+
+    methodSelect.addEventListener('change', toggleNormalFields);
+    toggleNormalFields();
+})();
+</script>
+{% endblock %}

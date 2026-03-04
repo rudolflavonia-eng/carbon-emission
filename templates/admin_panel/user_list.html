@@ -1,0 +1,124 @@
+{% extends "admin_panel/base.html" %}
+
+{% block page_title %}用户管理{% endblock %}
+
+{% block content %}
+<!-- 操作栏 -->
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <a href="{% url 'users:admin_user_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>新增用户
+    </a>
+    <form method="get" class="d-flex gap-2" style="max-width:320px;">
+        <input type="text" name="keyword" class="form-control form-control-sm" placeholder="搜索用户名/邮箱..." value="{{ request.GET.keyword }}" style="font-size:14px;">
+        <button class="btn btn-primary btn-sm" type="submit" style="white-space:nowrap;">
+            <i class="bi bi-search"></i>
+        </button>
+    </form>
+</div>
+
+<!-- 用户表格 -->
+<div class="content-card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>用户名</th>
+                        <th>邮箱</th>
+                        <th>角色</th>
+                        <th>状态</th>
+                        <th>注册时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td>{{ u.id }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" style="width:32px;height:32px;flex-shrink:0;">
+                                    <span class="text-white fw-bold" style="font-size:12px;">{{ u.username|first|upper }}</span>
+                                </div>
+                                <span style="font-weight:500;">{{ u.username }}</span>
+                            </div>
+                        </td>
+                        <td style="color:var(--gray-500);font-size:13px;">{{ u.email|default:"--" }}</td>
+                        <td>
+                            {% if u.is_staff %}
+                                <span class="badge" style="background:#DBEAFE;color:var(--primary);">管理员</span>
+                            {% else %}
+                                <span class="badge" style="background:var(--gray-100);color:var(--gray-600);">普通用户</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if u.is_active %}
+                                <span class="badge" style="background:#D1FAE5;color:#059669;">正常</span>
+                            {% else %}
+                                <span class="badge" style="background:#FEE2E2;color:#DC2626;">禁用</span>
+                            {% endif %}
+                        </td>
+                        <td style="white-space:nowrap;color:var(--gray-500);font-size:13px;">{{ u.date_joined|date:"Y-m-d H:i" }}</td>
+                        <td style="white-space:nowrap;">
+                            <a href="{% url 'users:admin_user_edit' u.id %}" class="btn btn-sm btn-outline-primary" title="编辑">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% if u.id != request.user.id %}
+                            <a href="{% url 'users:admin_user_delete' u.id %}" class="btn btn-sm btn-outline-danger ms-1" title="删除" onclick="return confirm('确认删除用户「{{ u.username }}」吗？此操作不可撤销。');">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5" style="color:var(--gray-400);">
+                            <i class="bi bi-people" style="font-size:36px;display:block;margin-bottom:8px;"></i>
+                            暂无用户数据
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 分页 -->
+{% if page_obj and page_obj.has_other_pages %}
+<nav class="mt-4 d-flex justify-content-center">
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

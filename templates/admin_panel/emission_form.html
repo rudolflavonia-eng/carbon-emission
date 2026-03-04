@@ -1,0 +1,104 @@
+{% extends "admin_panel/base.html" %}
+
+{% block page_title %}{{ action }}排放记录{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="content-card">
+            <div class="card-header">
+                <h6><i class="bi bi-pencil-square me-2"></i>{{ action }}排放记录</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <!-- 年份 -->
+                        <div class="col-md-4">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">年份 <span class="text-danger">*</span></label>
+                            <select name="year" class="form-select" style="font-size:14px;" required>
+                                <option value="">请选择年份</option>
+                                {% for y in years %}
+                                <option value="{{ y }}" {% if record.year == y %}selected{% endif %}>{{ y }}年</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- 季度 -->
+                        <div class="col-md-4">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">季度 <span class="text-danger">*</span></label>
+                            <select name="quarter" class="form-select" style="font-size:14px;" required>
+                                <option value="">请选择季度</option>
+                                <option value="1" {% if record.quarter == 1 %}selected{% endif %}>第一季度</option>
+                                <option value="2" {% if record.quarter == 2 %}selected{% endif %}>第二季度</option>
+                                <option value="3" {% if record.quarter == 3 %}selected{% endif %}>第三季度</option>
+                                <option value="4" {% if record.quarter == 4 %}selected{% endif %}>第四季度</option>
+                            </select>
+                        </div>
+                        <!-- 地区 -->
+                        <div class="col-md-4">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">地区 <span class="text-danger">*</span></label>
+                            <select name="region" class="form-select" style="font-size:14px;" required>
+                                <option value="">请选择地区</option>
+                                {% for r in regions %}
+                                <option value="{{ r.id }}" {% if record.region_id == r.id %}selected{% endif %}>{{ r.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- 行业 -->
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">行业 <span class="text-danger">*</span></label>
+                            <select name="industry" class="form-select" style="font-size:14px;" required>
+                                <option value="">请选择行业</option>
+                                {% for i in industries %}
+                                <option value="{{ i.id }}" {% if record.industry_id == i.id %}selected{% endif %}>{{ i.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- 排放源 -->
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">排放源 <span class="text-danger">*</span></label>
+                            <select name="source" class="form-select" style="font-size:14px;" required>
+                                <option value="">请选择排放源</option>
+                                {% for s in sources %}
+                                <option value="{{ s.id }}" {% if record.source_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- 排放量 -->
+                        <div class="col-md-4">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">排放量(万吨CO2) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" name="emission_amount" class="form-control" style="font-size:14px;" value="{{ record.emission_amount|default:'' }}" required>
+                        </div>
+                        <!-- 能源消耗 -->
+                        <div class="col-md-4">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">能源消耗(万吨标准煤)</label>
+                            <input type="number" step="0.01" name="energy_consumption" class="form-control" style="font-size:14px;" value="{{ record.energy_consumption|default:'' }}">
+                        </div>
+                        <!-- GDP -->
+                        <div class="col-md-4">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">GDP(亿元)</label>
+                            <input type="number" step="0.01" name="gdp" class="form-control" style="font-size:14px;" value="{{ record.gdp|default:'' }}">
+                        </div>
+                        <!-- 人口 -->
+                        <div class="col-md-4">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">人口(万人)</label>
+                            <input type="number" step="0.01" name="population" class="form-control" style="font-size:14px;" value="{{ record.population|default:'' }}">
+                        </div>
+                        <!-- 能源效率 -->
+                        <div class="col-md-4">
+                            <label class="form-label" style="font-size:14px;font-weight:500;color:var(--gray-600);">能源效率(吨CO2/万元GDP)</label>
+                            <input type="number" step="0.0001" name="energy_efficiency" class="form-control" style="font-size:14px;" value="{{ record.energy_efficiency|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" style="padding:8px 32px;font-size:14px;">
+                            <i class="bi bi-check-lg me-1"></i>提交保存
+                        </button>
+                        <a href="{% url 'emissions:admin_emission_list' %}" class="btn btn-secondary" style="padding:8px 32px;font-size:14px;">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
