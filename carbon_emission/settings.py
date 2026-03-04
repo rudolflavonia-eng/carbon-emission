@@ -104,3 +104,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 import os
 PORT = os.environ.get('PORT', '8000')
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.up.railway.app',
+    'https://web-production-5301a.up.railway.app',
+]
